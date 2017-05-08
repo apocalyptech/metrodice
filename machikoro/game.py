@@ -174,7 +174,7 @@ class ExpansionBase(Expansion):
             deck.append(cards.CardFurnitureFactory(game))
             deck.append(cards.CardFruitAndVeg(game))
 
-        # Establishments only have as many cards as there
+        # Major Establishments only have as many cards as there
         # are players, since there can't be duplicates
         # (this actually doesn't matter for the base game,
         # really, but may as well put it in 'cause it
@@ -207,9 +207,12 @@ class ExpansionHarbor(Expansion):
         # First set up the cards we provide
         deck = []
         for i in range(6):
-            pass
+            deck.append(cards.CardFlowerOrchard(game))
+            deck.append(cards.CardPizzaJoint(game))
+            deck.append(cards.CardHamburgerStand(game))
+            deck.append(cards.CardFoodWarehouse(game))
 
-        # Establishments only have as many cards as there
+        # Major Establishments only have as many cards as there
         # are players, since there can't be duplicates
         # (this actually doesn't matter for the base game,
         # really, but may as well put it in 'cause it

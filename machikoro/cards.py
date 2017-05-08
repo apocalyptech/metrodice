@@ -531,6 +531,67 @@ class CardAppleOrchard(CardBasicPayout):
             activations=[10],
         )
 
+class CardFlowerOrchard(CardBasicPayout):
+
+    def __init__(self, game):
+        super(CardFlowerOrchard, self).__init__(
+            game=game,
+            name='Flower Orchard',
+            desc="Get 1 coin from the bank, on anyone's turn.",
+            short_desc='1 coin',
+            color=Card.COLOR_BLUE,
+            family=Card.FAMILY_WHEAT,
+            cost=2,
+            payout=1,
+            activations=[4],
+        )
+
+class CardPizzaJoint(CardBasicRed):
+
+    def __init__(self, game):
+        super(CardPizzaJoint, self).__init__(
+            game=game,
+            name='Pizza Joint',
+            desc="Get 1 coin from the player who rolled the dice.",
+            short_desc='1 coin',
+            color=Card.COLOR_RED,
+            family=Card.FAMILY_CUP,
+            cost=1,
+            fee=1,
+            activations=[7],
+        )
+
+class CardHamburgerStand(CardBasicRed):
+
+    def __init__(self, game):
+        super(CardHamburgerStand, self).__init__(
+            game=game,
+            name='Hamburger Stand',
+            desc="Get 1 coin from the player who rolled the dice.",
+            short_desc='1 coin',
+            color=Card.COLOR_RED,
+            family=Card.FAMILY_CUP,
+            cost=1,
+            fee=1,
+            activations=[8],
+        )
+
+class CardFoodWarehouse(CardFactoryFamily):
+
+    def __init__(self, game):
+        super(CardFoodWarehouse, self).__init__(
+            game=game,
+            name='Food Warehouse',
+            desc='Get 2 coins from the bank for each [Cup] establishment that you own, on your turn only.',
+            short_desc='2 coins/cup',
+            color=Card.COLOR_GREEN,
+            family=Card.FAMILY_FACTORY,
+            cost=2,
+            target_family=Card.FAMILY_CUP,
+            payout=2,
+            activations=[12,13],
+        )
+
 class Landmark(object):
     """
     Base class for Landmarks, the "goal" cards of the game.  This base
