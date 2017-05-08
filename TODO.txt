@@ -1,0 +1,6 @@
+"undo" card selection for Business Center
+Real basic AI to play against
+
+Some of our internal structures are a bit lame.  Player deck, for
+instance, is just an unorganized list.  Various things along those lines
+could probably be reimplemented far better.
