@@ -44,6 +44,15 @@ class Player(object):
                 return True
         return False
 
+    def has_landmark(self, compare_landmark):
+        """
+        Returns True if the player has constructed the given landmark
+        """
+        for landmark in self.landmarks:
+            if type(landmark) == type(compare_landmark):
+                return landmark.constructed
+        return False
+
     def coin_if_broke(self):
         for landmark in self.landmarks:
             if landmark.constructed and landmark.provides_coin_on_broke():
@@ -207,10 +216,14 @@ class ExpansionHarbor(Expansion):
         # First set up the cards we provide
         deck = []
         for i in range(6):
+            deck.append(cards.CardSushiBar(game))
             deck.append(cards.CardFlowerOrchard(game))
+            deck.append(cards.CardFlowerShop(game))
             deck.append(cards.CardPizzaJoint(game))
             deck.append(cards.CardHamburgerStand(game))
+            deck.append(cards.CardMackerelBoat(game))
             deck.append(cards.CardFoodWarehouse(game))
+            deck.append(cards.CardTunaBoat(game))
 
         # Major Establishments only have as many cards as there
         # are players, since there can't be duplicates
@@ -218,7 +231,8 @@ class ExpansionHarbor(Expansion):
         # really, but may as well put it in 'cause it
         # does matter for other expansions)
         for i in range(num_players):
-            pass
+            deck.append(cards.CardPublisher(game))
+            deck.append(cards.CardTaxOffice(game))
 
         # Next set up our landmarks
         landmarks = [
@@ -614,6 +628,7 @@ class Game(object):
         self.rolled_dice = 0
         self.roll_result = 0
         self.actions_available = []
+        self.tuna_boat_roll = None
         self.set_up_available_actions()
 
     def set_up_available_actions(self):
@@ -710,6 +725,9 @@ class Game(object):
         # Step 2: Blues - process all player's hands
         for player in self.players:
             player.process_roll(roll, cards.Card.COLOR_BLUE, self.current_player)
+
+        # Step 2.5: Clear out any Tuna Boat roll that we may have held on to.
+        self.tuna_boat_roll = None
 
         # Step 3: Greens - process current player's hand
         self.current_player.process_roll(roll, cards.Card.COLOR_GREEN, self.current_player)

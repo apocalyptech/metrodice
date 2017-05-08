@@ -1,6 +1,9 @@
 #!/usr/bin/python
 # vim: set expandtab tabstop=4 shiftwidth=4:
 
+import math
+import random
+
 from . import game as gamelib
 
 class Card(object):
@@ -86,7 +89,20 @@ class Card(object):
     def family_str(self):
         return self.ENG_FAMILY[self.family]
 
+    def required_landmark(self):
+        return None
+
     def hit(self, player_rolled):
+        """
+        Perform the action on the card (ie: this number has been rolled).
+        This is mostly a wrapper for any prerequisites which may exist.
+        """
+        if self.required_landmark() is not None:
+            if not self.owner.has_landmark(self.required_landmark()):
+                return
+        return self._hit(player_rolled)
+
+    def _hit(self, player_rolled):
         """
         Perform the action on the card (ie: this number has been rolled)
         """
@@ -119,7 +135,7 @@ class CardBasicPayout(Card):
             activations=activations,
         )
 
-    def hit(self, player_rolled):
+    def _hit(self, player_rolled):
         """
         Perform the action on the card (ie: this number has been rolled).
         """
@@ -148,13 +164,48 @@ class CardFactoryFamily(Card):
             activations=activations,
         )
 
-    def hit(self, player_rolled):
+    def _hit(self, player_rolled):
         """
         Perform the action on the card (ie: this number has been rolled).
         """
         num_matches = 0
         for card in self.owner.deck:
             if card.family == self.target_family:
+                num_matches += 1
+        to_pay = self.payout * num_matches
+        if self.does_bread_cup_bonus_apply():
+            to_pay += 1
+        if to_pay > 0:
+            self.owner.money += to_pay
+            self.game.add_event('Player "%s" received %d coins for a %s (new total: %d)' % (self.owner, to_pay, self, self.owner.money))
+
+class CardFactoryCard(Card):
+    """
+    A "factory" card whose payout depends on other card types you have.  Very similar
+    to CardFactoryFamily.
+    """
+
+    def __init__(self, game, name, desc, short_desc, color, family, cost, target_card, payout, activations):
+        self.target_card_type = type(target_card)
+        self.payout = payout
+        super(CardFactoryCard, self).__init__(
+            game=game,
+            name=name,
+            desc=desc,
+            short_desc=short_desc,
+            color=color,
+            family=family,
+            cost=cost,
+            activations=activations,
+        )
+
+    def _hit(self, player_rolled):
+        """
+        Perform the action on the card (ie: this number has been rolled).
+        """
+        num_matches = 0
+        for card in self.owner.deck:
+            if type(card) == self.target_card_type:
                 num_matches += 1
         to_pay = self.payout * num_matches
         if self.does_bread_cup_bonus_apply():
@@ -181,7 +232,7 @@ class CardBasicRed(Card):
             activations=activations,
         )
 
-    def hit(self, player_rolled):
+    def _hit(self, player_rolled):
         """
         Perform the action on the card (ie: this number has been rolled).
         """
@@ -298,7 +349,7 @@ class CardStadium(Card):
             activations=[6],
         )
 
-    def hit(self, player_rolled):
+    def _hit(self, player_rolled):
         """
         Two coins from all players!
         """
@@ -324,7 +375,7 @@ class CardTVStation(Card):
             activations=[6],
         )
 
-    def hit(self, player_rolled):
+    def _hit(self, player_rolled):
         """
         Five coins from a single player
         """
@@ -368,7 +419,7 @@ class CardBusinessCenter(Card):
         self.trade_owner = None
         self.trade_other = None
 
-    def hit(self, player_rolled):
+    def _hit(self, player_rolled):
         """
         Trade some cards!
         """
@@ -531,6 +582,24 @@ class CardAppleOrchard(CardBasicPayout):
             activations=[10],
         )
 
+class CardSushiBar(CardBasicRed):
+
+    def __init__(self, game):
+        super(CardSushiBar, self).__init__(
+            game=game,
+            name='Sushi Bar',
+            desc="If you have a harbor, you get 3 coins from the player who rolled the dice.",
+            short_desc='w/ harbor, 3 coins',
+            color=Card.COLOR_RED,
+            family=Card.FAMILY_CUP,
+            cost=4,
+            fee=3,
+            activations=[1],
+        )
+
+    def required_landmark(self):
+        return LandmarkHarbor()
+
 class CardFlowerOrchard(CardBasicPayout):
 
     def __init__(self, game):
@@ -544,6 +613,22 @@ class CardFlowerOrchard(CardBasicPayout):
             cost=2,
             payout=1,
             activations=[4],
+        )
+
+class CardFlowerShop(CardFactoryCard):
+
+    def __init__(self, game):
+        super(CardFlowerShop, self).__init__(
+            game=game,
+            name='Flower Shop',
+            desc='Get 1 coin from the bank for each Flower Orchard you own, on your turn only.',
+            short_desc='1 coin/flower orchard',
+            color=Card.COLOR_GREEN,
+            family=Card.FAMILY_BREAD,
+            cost=1,
+            target_card=CardFlowerOrchard(game),
+            payout=1,
+            activations=[6],
         )
 
 class CardPizzaJoint(CardBasicRed):
@@ -561,6 +646,62 @@ class CardPizzaJoint(CardBasicRed):
             activations=[7],
         )
 
+class CardPublisher(Card):
+
+    def __init__(self, game):
+        super(CardPublisher, self).__init__(
+            game=game,
+            name='Publisher',
+            desc='Get 1 coin from each player for each [Cup] and [Bread] establishment they have, on your turn only.',
+            short_desc='1 coin/cup+bread/all players',
+            color=Card.COLOR_PURPLE,
+            family=Card.FAMILY_MAJOR,
+            cost=5,
+            activations=[7],
+        )
+
+    def _hit(self, player_rolled):
+        """
+        One coin from all players for each Cup and Bread they have.
+        """
+        for player in self.game.players:
+            if player != self.owner:
+                num_cards = 0
+                for card in player.deck:
+                    if card.family == Card.FAMILY_CUP or card.family == Card.FAMILY_BREAD:
+                        num_cards += 1
+                to_steal = min(num_cards, player.money)
+                if to_steal > 0:
+                    self.owner.money += to_steal
+                    player.money -= to_steal
+                    self.game.add_event('Player "%s" received %d coins from "%s" from a %s (new total: %d)' % (self.owner, to_steal, player, self, self.owner.money))
+
+class CardTaxOffice(Card):
+
+    def __init__(self, game):
+        super(CardTaxOffice, self).__init__(
+            game=game,
+            name='Tax Office',
+            desc='Take half (rounded down) of the coins from each player who has 10 coins or more, on your turn only.',
+            short_desc='half from players w/ 10+ coins',
+            color=Card.COLOR_PURPLE,
+            family=Card.FAMILY_MAJOR,
+            cost=4,
+            activations=[8,9],
+        )
+
+    def _hit(self, player_rolled):
+        """
+        Half coins from each player who's got 10 or more.
+        """
+        for player in self.game.players:
+            if player != self.owner:
+                if player.money >= 10:
+                    to_steal = math.floor(player.money / 2)
+                    self.owner.money += to_steal
+                    player.money -= to_steal
+                    self.game.add_event('Player "%s" received %d coins from "%s" from a %s (new total: %d)' % (self.owner, to_steal, player, self, self.owner.money))
+
 class CardHamburgerStand(CardBasicRed):
 
     def __init__(self, game):
@@ -575,6 +716,24 @@ class CardHamburgerStand(CardBasicRed):
             fee=1,
             activations=[8],
         )
+
+class CardMackerelBoat(CardBasicPayout):
+
+    def __init__(self, game):
+        super(CardMackerelBoat, self).__init__(
+            game=game,
+            name='Mackerel Boat',
+            desc="If you have a Harbor, get 3 coins from the bank on anyone's turn.",
+            short_desc='w/ harbor, 3 coins',
+            color=Card.COLOR_BLUE,
+            family=Card.FAMILY_BOAT,
+            cost=2,
+            payout=3,
+            activations=[8],
+        )
+
+    def required_landmark(self):
+        return LandmarkHarbor()
 
 class CardFoodWarehouse(CardFactoryFamily):
 
@@ -591,6 +750,41 @@ class CardFoodWarehouse(CardFactoryFamily):
             payout=2,
             activations=[12,13],
         )
+
+class CardTunaBoat(Card):
+    """
+    Tuna Boat!
+    """
+
+    def __init__(self, game):
+        super(CardTunaBoat, self).__init__(
+            game=game,
+            name='Tuna Boat',
+            desc="On anyone's turn: The current player rolls 2 dice.  If you have a harbor you get as many coins as the dice total.",
+            short_desc='w/ harbor, 2 dice -> coins',
+            color=Card.COLOR_BLUE,
+            family=Card.FAMILY_BOAT,
+            cost=5,
+            activations=[12,13,14],
+        )
+
+    def required_landmark(self):
+        return LandmarkHarbor()
+
+    def _hit(self, player_rolled):
+        """
+        Perform the action on the card (ie: this number has been rolled).  The tuna
+        boat roll is saved up in the main Game object so that it can be reused across
+        multiple Tuna Boat activations.  This variable should be cleared out as soon
+        as the rolling phase is done.
+        """
+        if self.game.tuna_boat_roll is None:
+            roll1 = random.randint(1, 6)
+            roll2 = random.randint(1, 6)
+            self.game.tuna_boat_roll = roll1 + roll2
+            self.game.add_event('Tuna Boat roll results: %d + %d = %d' % (roll1, roll2, self.game.tuna_boat_roll))
+        self.owner.money += self.game.tuna_boat_roll
+        self.game.add_event('Player "%s" received %d coins for a %s (new total: %d)' % (self.owner, self.game.tuna_boat_roll, self, self.owner.money))
 
 class Landmark(object):
     """
