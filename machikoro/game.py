@@ -44,28 +44,46 @@ class Player(object):
                 return True
         return False
 
+    def coin_if_broke(self):
+        for landmark in self.landmarks:
+            if landmark.constructed and landmark.provides_coin_on_broke():
+                return landmark
+        return False
+
+    def dice_add_to_ten_or_higher(self):
+        for landmark in self.landmarks:
+            if landmark.constructed and landmark.dice_add_to_ten_or_higher():
+                return landmark
+        return False
+
     def can_roll_two_dice(self):
         for landmark in self.landmarks:
             if landmark.constructed and landmark.allows_two_dice():
-                return True
+                return landmark
         return False
 
     def has_bread_cup_bonus(self):
         for landmark in self.landmarks:
             if landmark.constructed and landmark.bread_cup_bonus():
-                return True
+                return landmark
         return False
 
     def extra_turn_on_doubles(self):
         for landmark in self.landmarks:
             if landmark.constructed and landmark.extra_turn_on_doubles():
-                return True
+                return landmark
         return False
 
     def can_reroll_once(self):
         for landmark in self.landmarks:
             if landmark.constructed and landmark.allows_one_reroll():
-                return True
+                return landmark
+        return False
+
+    def gets_ten_coins_for_not_building(self):
+        for landmark in self.landmarks:
+            if landmark.constructed and landmark.ten_coins_for_not_building():
+                return landmark
         return False
 
     def __repr__(self):
@@ -122,6 +140,17 @@ class Expansion(object):
         self.deck = deck
         self.landmarks = landmarks
 
+    def __add__(self, other):
+
+        return Expansion(
+            name = '%s + %s' % (self.name, other.name),
+            game = self.game,
+            num_players = self.num_players,
+            deck = self.deck + other.deck,
+            landmarks = self.landmarks + other.landmarks,
+        )
+
+
 class ExpansionBase(Expansion):
     """
     The base game "expansion" - always active.
@@ -168,6 +197,38 @@ class ExpansionBase(Expansion):
             game=game,
             num_players=num_players, deck=deck, landmarks=landmarks)
 
+class ExpansionHarbor(Expansion):
+    """
+    The Harbor expansion
+    """
+
+    def __init__(self, game, num_players):
+
+        # First set up the cards we provide
+        deck = []
+        for i in range(6):
+            pass
+
+        # Establishments only have as many cards as there
+        # are players, since there can't be duplicates
+        # (this actually doesn't matter for the base game,
+        # really, but may as well put it in 'cause it
+        # does matter for other expansions)
+        for i in range(num_players):
+            pass
+
+        # Next set up our landmarks
+        landmarks = [
+                cards.LandmarkCityHall(),
+                cards.LandmarkHarbor(),
+                cards.LandmarkAirport(),
+            ]
+
+        # Now populate a bit
+        super(ExpansionHarbor, self).__init__(name='Harbor',
+            game=game,
+            num_players=num_players, deck=deck, landmarks=landmarks)
+
 class MarketBase(object):
     """
     The base 'market' class which is used to populate the available
@@ -178,7 +239,8 @@ class MarketBase(object):
     `_check_replace()`
     """
 
-    def __init__(self, deck):
+    def __init__(self, game, deck):
+        self.game = game
         self.deck = deck
         self.available = {}
         self._populate_initial()
@@ -233,6 +295,31 @@ class MarketBase(object):
         for cardlist in self.available.values():
             ret_dict[cardlist[0]] = len(cardlist)
         return ret_dict
+
+class MarketHarbor(MarketBase):
+    """
+    The market according to the Harbor expansion.  Will keep a pool of ten
+    types of cards available, and replenish as needed.
+    """
+
+    def _populate_initial(self):
+        """
+        Initial population.  Mostly just shuffle and then call our
+        usual market-filling routine.
+        """
+        random.shuffle(self.deck)
+        self._check_replace()
+
+    def _check_replace(self):
+        """
+        Fills our market until we have ten unique piles of cards.  Since
+        the market is always changing, also provide notification to the
+        user about what's been dealt out.
+        """
+        while len(self.available) < 10:
+            new_card = self.deck.pop()
+            self.game.add_event('Added to the market: %s' % (new_card))
+            self._add_to_available(new_card)
 
 class Action(object):
     """
@@ -320,18 +407,39 @@ class ActionKeepRoll(Action):
     Action to keep the roll you made (Radio Tower)
     """
 
-    def __init__(self, player, game, roll):
+    def __init__(self, player, game, roll, allow_addition=True):
         """
         Roll the dice
         """
         self.roll = roll
+        self.allow_addition = allow_addition
         super(ActionKeepRoll, self).__init__(desc='Keep your die roll of %d' % (roll),
             player=player,
             game=game)
 
     def _action_body(self):
         self.game.add_event('Player "%s" kept the die roll of %d' % (self.player, self.roll))
-        self.game.player_rolled(self.roll, None)
+        self.game.player_rolled(self.roll, None, self.allow_addition)
+
+class ActionAddToRoll(Action):
+    """
+    Action to add 2 to the dice roll
+    """
+
+    def __init__(self, player, game, roll, num_to_add=2):
+        """
+        Add to roll
+        """
+        self.roll = roll
+        self.num_to_add = num_to_add
+        super(ActionAddToRoll, self).__init__(desc='Add %d to roll (result: %d)' % (num_to_add, roll + num_to_add),
+            player=player,
+            game=game)
+
+    def _action_body(self):
+        new_roll = self.roll + self.num_to_add
+        self.game.add_event('Player "%s" added %d to roll, to make the roll: %d' % (self.player, self.num_to_add, new_roll))
+        self.game.player_rolled(new_roll, None, False)
 
 class ActionSkipBuy(Action):
     """
@@ -347,7 +455,12 @@ class ActionSkipBuy(Action):
             game=game)
 
     def _action_body(self):
-        self.game.add_event('Player "%s" opted not to buy anything.' % (self.player))
+        landmark = self.player.gets_ten_coins_for_not_building()
+        if landmark:
+            self.game.add_event('Player "%s" gets 10 coins for not buying anything (from %s).' % (self.player, landmark))
+            self.player.money += 10
+        else:
+            self.game.add_event('Player "%s" opted not to buy anything.' % (self.player))
         self.game.buy_finished()
 
 class ActionBuyCard(Action):
@@ -452,28 +565,43 @@ class Game(object):
 
     (STATE_TURN_BEGIN,
         STATE_ASK_REROLL,
+        STATE_ASK_ADD_TO_ROLL,
         STATE_ESTABLISHMENT_CHOICE,
         STATE_PURCHASE_DECISION,
         STATE_GAME_OVER,
-        ) = range(5)
+        ) = range(6)
 
     ENG_STATE = {
             STATE_TURN_BEGIN: 'Beginning of turn',
             STATE_ASK_REROLL: 'Asking if player wants to re-roll',
+            STATE_ASK_ADD_TO_ROLL: 'Asking if player wants to add +2 to dice roll',
             STATE_ESTABLISHMENT_CHOICE: 'Waiting for player to make Establishment decision',
             STATE_PURCHASE_DECISION: 'Waiting for player to make purchase decision',
             STATE_GAME_OVER: 'Game Over',
         }
 
     def __init__(self, players):
+        """
+        Initialization.  Set things up!  The Expansion/Market stuff
+        is just hardcoded for now.
+        """
 
+        # Set up our _events list early, in case an expansion or market
+        # wants to leave us a message (though we will discard them afterwards)
+        self._events = []
+
+        # Now set up the main vars
         self.players = players
-        self.expansion = ExpansionBase(self, len(players))
-        self.market = MarketBase(self.expansion.deck)
+        self.expansion = ExpansionBase(self, len(players)) + ExpansionHarbor(self, len(players))
+        #self.market = MarketBase(self, self.expansion.deck)
+        self.market = MarketHarbor(self, self.expansion.deck)
 
         # Populate various player bits which rely on expansion and market
         for player in self.players:
             player.game_setup(self)
+
+        # Clear out any events which may have been generated
+        self._events = []
 
         # Set up our state
         self.current_player_idx = 0
@@ -482,7 +610,6 @@ class Game(object):
         self.state_cards = []
         self.rolled_dice = 0
         self.roll_result = 0
-        self._events = []
         self.actions_available = []
         self.set_up_available_actions()
 
@@ -521,6 +648,10 @@ class Game(object):
             else:
                 raise Exception('Unkown number of dice rolled: %d' % (self.rolled_dice))
 
+        elif self.state == Game.STATE_ASK_ADD_TO_ROLL:
+            actions.append(ActionKeepRoll(self.current_player, self, self.roll_result, False))
+            actions.append(ActionAddToRoll(self.current_player, self, self.roll_result))
+
         elif self.state == Game.STATE_ESTABLISHMENT_CHOICE:
             for card in self.state_cards:
                 actions.extend(card.get_pending_actions())
@@ -548,7 +679,7 @@ class Game(object):
         self._events = []
         return events
 
-    def player_rolled(self, roll, dice_rolled):
+    def player_rolled(self, roll, dice_rolled, allow_addition=True):
         """
         Process what happens when a player rolls dice and gets a number.  `dice_rolled` should
         be the number of dice rolled if the player might be eligible for a reroll.  Pass in
@@ -559,6 +690,12 @@ class Game(object):
         # to re-roll.
         if dice_rolled is not None and self.current_player.can_reroll_once():
             self.state = Game.STATE_ASK_REROLL
+            return
+
+        # Step 0.5: If the player has the required Landmark, see if they want
+        # to add 2 to the roll, if it's already 10 or higher
+        if allow_addition and roll >= 10 and self.current_player.dice_add_to_ten_or_higher():
+            self.state = Game.STATE_ASK_ADD_TO_ROLL
             return
 
         # Step 1: Reds - process other players' hands
@@ -586,6 +723,10 @@ class Game(object):
         """
         if len(self.state_cards) == 0:
             self.state = Game.STATE_PURCHASE_DECISION
+            landmark = self.current_player.coin_if_broke()
+            if landmark and self.current_player.money == 0:
+                self.add_event('Player "%s" recieved 1 coin due to %s' % (self.current_player, landmark))
+                self.current_player.money = 1
         else:
             self.state = Game.STATE_ESTABLISHMENT_CHOICE
 

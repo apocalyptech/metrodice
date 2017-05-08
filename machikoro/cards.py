@@ -554,7 +554,13 @@ class Landmark(object):
     def construct(self):
         self.constructed = True
 
+    def provides_coin_on_broke(self):
+        return False
+
     def starts_constructed(self):
+        return False
+
+    def dice_add_to_ten_or_higher(self):
         return False
 
     def allows_two_dice(self):
@@ -569,6 +575,40 @@ class Landmark(object):
     def allows_one_reroll(self):
         return False
 
+    def ten_coins_for_not_building(self):
+        return False
+
+class LandmarkCityHall(Landmark):
+    """
+    City Hall Landmark
+    """
+
+    def __init__(self):
+        super(LandmarkCityHall, self).__init__(name='City Hall',
+            desc='Immediately before buying establishments, if you have 0 coins, get 1 from the bank.',
+            short_desc='1 coin if broke',
+            cost=0)
+
+    def provides_coin_on_broke(self):
+        return True
+
+    def starts_constructed(self):
+        return True
+
+class LandmarkHarbor(Landmark):
+    """
+    Harbor Landmark
+    """
+
+    def __init__(self):
+        super(LandmarkHarbor, self).__init__(name='Harbor',
+            desc='If the dice total is 10 or more, you may add 2 to the total, on your turn only.',
+            short_desc='+2 to 10+ dice',
+            cost=2)
+
+    def dice_add_to_ten_or_higher(self):
+        return True
+
 class LandmarkTrainStation(Landmark):
     """
     Train Station Landmark
@@ -578,7 +618,7 @@ class LandmarkTrainStation(Landmark):
         super(LandmarkTrainStation, self).__init__(name='Train Station',
             desc='Roll 1 or 2 dice.',
             short_desc='2 dice',
-            cost=2)
+            cost=4)
 
     def allows_two_dice(self):
         return True
@@ -623,4 +663,18 @@ class LandmarkRadioTower(Landmark):
             cost=22)
 
     def allows_one_reroll(self):
+        return True
+
+class LandmarkAirport(Landmark):
+    """
+    Airport Landmark
+    """
+
+    def __init__(self):
+        super(LandmarkAirport, self).__init__(name='Airport',
+            desc='If you build nothing on your turn, you get 10 coins from the bank.',
+            short_desc='10 coins for not building',
+            cost=30)
+
+    def ten_coins_for_not_building(self):
         return True

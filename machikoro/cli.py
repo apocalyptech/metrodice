@@ -98,7 +98,9 @@ class CLI(object):
         print('Landmarks:')
         for landmark in sorted(player.landmarks):
             if landmark.constructed:
+                sys.stdout.write(colorama.Style.BRIGHT)
                 print(' * %s (%s)' % (landmark, landmark.short_desc))
+                sys.stdout.write(colorama.Style.RESET_ALL)
             else:
                 if landmark.cost > player.money:
                     sys.stdout.write(colorama.Fore.WHITE)
