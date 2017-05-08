@@ -319,6 +319,13 @@ class MarketHarbor(MarketBase):
     types of cards available, and replenish as needed.
     """
 
+    def __init__(self, game, deck, pile_limit=10):
+        self.pile_limit = pile_limit
+        super(MarketHarbor, self).__init__(
+            game=game,
+            deck=deck
+        )
+
     def _populate_initial(self):
         """
         Initial population.  Mostly just shuffle and then call our
@@ -333,10 +340,76 @@ class MarketHarbor(MarketBase):
         the market is always changing, also provide notification to the
         user about what's been dealt out.
         """
-        while len(self.available) < 10:
+        while len(self.available) < self.pile_limit:
             new_card = self.deck.pop()
             self.game.add_event('Added to the market: %s' % (new_card))
             self._add_to_available(new_card)
+
+class MarketBrightLights(MarketBase):
+    """
+    The market according to the Bright Lights, Big City version.  This one
+    keeps three "separate" pools of cards available - four "regular" which
+    hit on 1-6, four "regular" which hit on 7+, and two major establishments.
+    types of cards available, and replenish as needed.
+    """
+
+    def _populate_initial(self):
+        """
+        Initial population.  Mostly just shuffle and then call our
+        usual market-filling routine.
+        """
+        low_cards = []
+        major_establishments = []
+        high_cards = []
+
+        # Sort into three different piles
+        for card in self.deck:
+            if card.family == cards.Card.FAMILY_MAJOR:
+                major_establishments.append(card)
+            elif card.activations[0] > 6:
+                high_cards.append(card)
+            else:
+                low_cards.append(card)
+
+        # Store this all internally as some MarketHarbor objects.
+        # This is rather improper but IMO is less messy than some
+        # other ways of doing it.
+        self.stock_low = MarketHarbor(self.game, low_cards, pile_limit=4)
+        self.stock_major = MarketHarbor(self.game, major_establishments, pile_limit=2)
+        self.stock_high = MarketHarbor(self.game, high_cards, pile_limit=4)
+        self.markets = [self.stock_low, self.stock_major, self.stock_high]
+
+        # And do our initial population
+        self._check_replace()
+
+    def _check_replace(self):
+        """
+        Passthrough to our three submarkets
+        """
+        for market in self.markets:
+            market._check_replace()
+
+    def take_card(self, card):
+        """
+        Take a card.  Rather than looping through, we'll go right after
+        the pool we're interested in.
+        """
+        if card.family == cards.Card.FAMILY_MAJOR:
+            return self.stock_major.take_card(card)
+        elif card.activations[0] > 6:
+            return self.stock_high.take_card(card)
+        else:
+            return self.stock_low.take_card(card)
+
+    def cards_available(self):
+        """
+        Have to combine our market outputs here.
+        """
+        ret_dict = {}
+        for market in self.markets:
+            for (card, count) in market.cards_available().items():
+                ret_dict[card] = count
+        return ret_dict
 
 class Action(object):
     """
@@ -612,6 +685,7 @@ class Game(object):
         self.expansion = ExpansionBase(self, len(players)) + ExpansionHarbor(self, len(players))
         #self.market = MarketBase(self, self.expansion.deck)
         self.market = MarketHarbor(self, self.expansion.deck)
+        #self.market = MarketBrightLights(self, self.expansion.deck)
 
         # Populate various player bits which rely on expansion and market
         for player in self.players:
