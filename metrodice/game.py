@@ -342,7 +342,7 @@ class MarketHarbor(MarketBase):
         the market is always changing, also provide notification to the
         user about what's been dealt out.
         """
-        while len(self.available) < self.pile_limit:
+        while (len(self.deck) > 0) and (len(self.available) < self.pile_limit):
             new_card = self.deck.pop()
             self.game.add_event('Added to the market: %s' % (new_card))
             self._add_to_available(new_card)
@@ -684,7 +684,6 @@ class Game(object):
         # Now set up the main vars
         self.players = players
         self.expansion = ExpansionBase() + ExpansionHarbor()
-        #self.expansion = ExpansionHarbor()
         #self.market = MarketBase(self, self.expansion)
         self.market = MarketHarbor(self, self.expansion)
         #self.market = MarketBrightLights(self, self.expansion)
