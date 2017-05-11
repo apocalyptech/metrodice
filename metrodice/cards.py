@@ -112,7 +112,7 @@ class Card(object):
         """
         Does a bread+cup bonus (from Shopping Mall) apply?
         """
-        if self.owner.has_bread_cup_bonus() and (self.family == Card.FAMILY_BREAD or self.family == Card.FAMILY_CUP):
+        if self.owner.has_bread_cup_bonus and (self.family == Card.FAMILY_BREAD or self.family == Card.FAMILY_CUP):
             return True
         else:
             return False
@@ -793,12 +793,16 @@ class Landmark(object):
     to be implemented in subclasses.
     """
 
-    def __init__(self, name, desc, short_desc, cost):
+    def __init__(self, player, name, desc, short_desc, cost, can_deconstruct=True, starts_constructed=False):
+        self.player = player
         self.name = name
         self.desc = desc
         self.short_desc = short_desc
         self.cost = cost
-        self.constructed = self.starts_constructed()
+        self.can_deconstruct = can_deconstruct
+        self.constructed = starts_constructed
+        if starts_constructed:
+            self._construct_action()
 
     def __lt__(self, other):
         return (self.cost < other.cost)
@@ -808,128 +812,140 @@ class Landmark(object):
 
     def construct(self):
         self.constructed = True
+        self._construct_action()
 
-    def provides_coin_on_broke(self):
-        return False
+    def deconstruct(self):
+        if self.can_deconstruct:
+            self.constructed = False
+            self._deconstruct_action()
 
-    def starts_constructed(self):
-        return False
+    def _construct_action(self):
+        raise Exception('Not implemented!')
 
-    def dice_add_to_ten_or_higher(self):
-        return False
-
-    def allows_two_dice(self):
-        return False
-
-    def bread_cup_bonus(self):
-        return False
-
-    def extra_turn_on_doubles(self):
-        return False
-
-    def allows_one_reroll(self):
-        return False
-
-    def ten_coins_for_not_building(self):
-        return False
+    def _deconstruct_action(self):
+        raise Exception('Not implemented!')
 
 class LandmarkCityHall(Landmark):
     """
     City Hall Landmark
     """
 
-    def __init__(self):
-        super(LandmarkCityHall, self).__init__(name='City Hall',
+    def __init__(self, player=None):
+        super(LandmarkCityHall, self).__init__(player=player,
+            name='City Hall',
             desc='Immediately before buying establishments, if you have 0 coins, get 1 from the bank.',
             short_desc='1 coin if broke',
-            cost=0)
+            cost=0,
+            can_deconstruct=False,
+            starts_constructed=True)
 
-    def provides_coin_on_broke(self):
-        return True
-
-    def starts_constructed(self):
-        return True
+    def _construct_action(self):
+        self.player.coin_if_broke = self
 
 class LandmarkHarbor(Landmark):
     """
     Harbor Landmark
     """
 
-    def __init__(self):
-        super(LandmarkHarbor, self).__init__(name='Harbor',
+    def __init__(self, player=None):
+        super(LandmarkHarbor, self).__init__(player=player,
+            name='Harbor',
             desc='If the dice total is 10 or more, you may add 2 to the total, on your turn only.',
             short_desc='+2 to 10+ dice',
             cost=2)
 
-    def dice_add_to_ten_or_higher(self):
-        return True
+    def _construct_action(self):
+        self.player.dice_add_to_ten_or_higher = self
+
+    def _deconstruct_action(self):
+        self.player.dice_add_to_ten_or_higher = False
 
 class LandmarkTrainStation(Landmark):
     """
     Train Station Landmark
     """
 
-    def __init__(self):
-        super(LandmarkTrainStation, self).__init__(name='Train Station',
+    def __init__(self, player=None):
+        super(LandmarkTrainStation, self).__init__(player=player,
+            name='Train Station',
             desc='Roll 1 or 2 dice.',
             short_desc='2 dice',
             cost=4)
 
-    def allows_two_dice(self):
-        return True
+    def _construct_action(self):
+        self.player.can_roll_two_dice = self
+
+    def _deconstruct_action(self):
+        self.player.can_roll_two_dice = False
 
 class LandmarkShoppingMall(Landmark):
     """
     Shopping Mall Landmark
     """
 
-    def __init__(self):
-        super(LandmarkShoppingMall, self).__init__(name='Shopping Mall',
+    def __init__(self, player=None):
+        super(LandmarkShoppingMall, self).__init__(player=player,
+            name='Shopping Mall',
             desc='Earn +1 coin from your own [Cup] and [Bread] establishments',
             short_desc='cup/bread bonus',
             cost=10)
 
-    def bread_cup_bonus(self):
-        return True
+    def _construct_action(self):
+        self.player.has_bread_cup_bonus = self
+
+    def _deconstruct_action(self):
+        self.player.has_bread_cup_bonus = False
 
 class LandmarkAmusementPark(Landmark):
     """
     Amusement Park Landmark
     """
 
-    def __init__(self):
-        super(LandmarkAmusementPark, self).__init__(name='Amusement Park',
+    def __init__(self, player=None):
+        super(LandmarkAmusementPark, self).__init__(player=player,
+            name='Amusement Park',
             desc='If you roll matching dice, take another turn after this one.',
             short_desc='extra turn on doubles',
             cost=16)
 
-    def extra_turn_on_doubles(self):
-        return True
+    def _construct_action(self):
+        self.player.extra_turn_on_doubles = self
+
+    def _deconstruct_action(self):
+        self.player.extra_turn_on_doubles = False
 
 class LandmarkRadioTower(Landmark):
     """
     Radio Tower Landmark
     """
 
-    def __init__(self):
-        super(LandmarkRadioTower, self).__init__(name='Radio Tower',
+    def __init__(self, player=None):
+        super(LandmarkRadioTower, self).__init__(player=player,
+            name='Radio Tower',
             desc='Once every turn, you can choose to re-roll your dice',
             short_desc='reroll dice',
             cost=22)
 
-    def allows_one_reroll(self):
-        return True
+    def _construct_action(self):
+        self.player.can_reroll_once = self
+
+    def _deconstruct_action(self):
+        self.player.can_reroll_once = False
 
 class LandmarkAirport(Landmark):
     """
     Airport Landmark
     """
 
-    def __init__(self):
-        super(LandmarkAirport, self).__init__(name='Airport',
+    def __init__(self, player=None):
+        super(LandmarkAirport, self).__init__(player=player,
+            name='Airport',
             desc='If you build nothing on your turn, you get 10 coins from the bank.',
             short_desc='10 coins for not building',
             cost=30)
 
-    def ten_coins_for_not_building(self):
-        return True
+    def _construct_action(self):
+        self.player.gets_ten_coins_for_not_building = self
+
+    def _deconstruct_action(self):
+        self.player.gets_ten_coins_for_not_building = False

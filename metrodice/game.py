@@ -18,6 +18,19 @@ class Player(object):
         self.landmarks = []
         self.rolled_doubles = False
 
+        # Abilities unlocked by Landmarks.  False when not unlocked,
+        # or the Landmark object if they are.  (So that we can report
+        # which Landmark caused an effect without having to hardcode
+        # the Landmark effects anywhere but the Landmark classes
+        # themselves.)
+        self.coin_if_broke = False
+        self.dice_add_to_ten_or_higher = False
+        self.can_roll_two_dice = False
+        self.has_bread_cup_bonus = False
+        self.extra_turn_on_doubles = False
+        self.can_reroll_once = False
+        self.gets_ten_coins_for_not_building = False
+
     def game_setup(self, game):
         """
         Sets up various variables we can only get from the Game
@@ -28,7 +41,7 @@ class Player(object):
 
         # Landmarks
         for landmark in game.expansion.landmarks:
-            self.landmarks.append(type(landmark)())
+            self.landmarks.append(landmark(self))
 
         # Starting Deck
         self.add_card(cards.CardWheat(game))
@@ -51,48 +64,6 @@ class Player(object):
         for landmark in self.landmarks:
             if type(landmark) == type(compare_landmark):
                 return landmark.constructed
-        return False
-
-    def coin_if_broke(self):
-        for landmark in self.landmarks:
-            if landmark.constructed and landmark.provides_coin_on_broke():
-                return landmark
-        return False
-
-    def dice_add_to_ten_or_higher(self):
-        for landmark in self.landmarks:
-            if landmark.constructed and landmark.dice_add_to_ten_or_higher():
-                return landmark
-        return False
-
-    def can_roll_two_dice(self):
-        for landmark in self.landmarks:
-            if landmark.constructed and landmark.allows_two_dice():
-                return landmark
-        return False
-
-    def has_bread_cup_bonus(self):
-        for landmark in self.landmarks:
-            if landmark.constructed and landmark.bread_cup_bonus():
-                return landmark
-        return False
-
-    def extra_turn_on_doubles(self):
-        for landmark in self.landmarks:
-            if landmark.constructed and landmark.extra_turn_on_doubles():
-                return landmark
-        return False
-
-    def can_reroll_once(self):
-        for landmark in self.landmarks:
-            if landmark.constructed and landmark.allows_one_reroll():
-                return landmark
-        return False
-
-    def gets_ten_coins_for_not_building(self):
-        for landmark in self.landmarks:
-            if landmark.constructed and landmark.ten_coins_for_not_building():
-                return landmark
         return False
 
     def __repr__(self):
@@ -195,10 +166,10 @@ class ExpansionBase(Expansion):
 
         # Next set up our landmarks
         landmarks = [
-                cards.LandmarkTrainStation(),
-                cards.LandmarkShoppingMall(),
-                cards.LandmarkAmusementPark(),
-                cards.LandmarkRadioTower(),
+                cards.LandmarkTrainStation,
+                cards.LandmarkShoppingMall,
+                cards.LandmarkAmusementPark,
+                cards.LandmarkRadioTower,
             ]
 
         # Now populate a bit
@@ -236,9 +207,9 @@ class ExpansionHarbor(Expansion):
 
         # Next set up our landmarks
         landmarks = [
-                cards.LandmarkCityHall(),
-                cards.LandmarkHarbor(),
-                cards.LandmarkAirport(),
+                cards.LandmarkCityHall,
+                cards.LandmarkHarbor,
+                cards.LandmarkAirport,
             ]
 
         # Now populate a bit
@@ -545,9 +516,8 @@ class ActionSkipBuy(Action):
             game=game)
 
     def _action_body(self):
-        landmark = self.player.gets_ten_coins_for_not_building()
-        if landmark:
-            self.game.add_event('Player "%s" gets 10 coins for not buying anything (from %s).' % (self.player, landmark))
+        if self.player.gets_ten_coins_for_not_building:
+            self.game.add_event('Player "%s" gets 10 coins for not buying anything (from %s).' % (self.player, self.player.gets_ten_coins_for_not_building))
             self.player.money += 10
         else:
             self.game.add_event('Player "%s" opted not to buy anything.' % (self.player))
@@ -715,7 +685,7 @@ class Game(object):
 
         if self.state == Game.STATE_TURN_BEGIN:
             actions.append(ActionRollOne(self.current_player, self))
-            if self.current_player.can_roll_two_dice():
+            if self.current_player.can_roll_two_dice:
                 actions.append(ActionRollTwo(self.current_player, self))
 
         elif self.state == Game.STATE_PURCHASE_DECISION:
@@ -780,13 +750,13 @@ class Game(object):
 
         # Step 0: If the player has the required Landmark, see if they want
         # to re-roll.
-        if dice_rolled is not None and self.current_player.can_reroll_once():
+        if dice_rolled is not None and self.current_player.can_reroll_once:
             self.state = Game.STATE_ASK_REROLL
             return
 
         # Step 0.5: If the player has the required Landmark, see if they want
         # to add 2 to the roll, if it's already 10 or higher
-        if allow_addition and roll >= 10 and self.current_player.dice_add_to_ten_or_higher():
+        if allow_addition and roll >= 10 and self.current_player.dice_add_to_ten_or_higher:
             self.state = Game.STATE_ASK_ADD_TO_ROLL
             return
 
@@ -818,9 +788,8 @@ class Game(object):
         """
         if len(self.state_cards) == 0:
             self.state = Game.STATE_PURCHASE_DECISION
-            landmark = self.current_player.coin_if_broke()
-            if landmark and self.current_player.money == 0:
-                self.add_event('Player "%s" recieved 1 coin due to %s' % (self.current_player, landmark))
+            if self.current_player.coin_if_broke and self.current_player.money == 0:
+                self.add_event('Player "%s" recieved 1 coin due to %s' % (self.current_player, self.current_player.coin_if_broke))
                 self.current_player.money = 1
         else:
             self.state = Game.STATE_ESTABLISHMENT_CHOICE
@@ -829,7 +798,7 @@ class Game(object):
         """
         The current player is through buying things.
         """
-        if self.current_player.rolled_doubles and self.current_player.extra_turn_on_doubles():
+        if self.current_player.rolled_doubles and self.current_player.extra_turn_on_doubles:
             self.add_event('Player "%s" takes another turn because of rolling doubles' % (self.current_player))
         else:
             self.current_player_idx = (self.current_player_idx + 1) % len(self.players)
