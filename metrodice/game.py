@@ -772,6 +772,17 @@ class Game(object):
         self._events = []
         return events
 
+    def players_counterclockwise(self, player):
+        """
+        Convenience function to loop through the players list counter-clockwise,
+        starting at (and omitting) the given player.  The only time this is likely to
+        ever get called is for processing red cards (on self.current_player's turn),
+        so it's maybe silly to abstract it.  Ah well.
+        """
+        players_rev = list(reversed(self.players))
+        player_idx = players_rev.index(player)
+        return players_rev[player_idx+1:] + players_rev[:player_idx]
+
     def player_rolled(self, roll, dice_rolled, allow_addition=True):
         """
         Process what happens when a player rolls dice and gets a number.  `dice_rolled` should
@@ -792,10 +803,8 @@ class Game(object):
             return
 
         # Step 1: Reds - process other players' hands
-        # TODO: should be processing this counter-clockwise
-        for player in self.players:
-            if player != self.current_player:
-                player.process_roll(roll, cards.Card.COLOR_RED, self.current_player)
+        for player in self.players_counterclockwise(self.current_player):
+            player.process_roll(roll, cards.Card.COLOR_RED, self.current_player)
 
         # Step 2: Blues - process all player's hands
         for player in self.players:
