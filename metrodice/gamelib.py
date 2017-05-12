@@ -488,7 +488,7 @@ class ActionChoosePlayer(Action):
             game=game)
 
     def _action_body(self):
-        self.card.chose_player(self, self.other_player)
+        self.card.chose_player(self.other_player)
 
 class ActionChooseOwnCard(Action):
     """
@@ -506,7 +506,7 @@ class ActionChooseOwnCard(Action):
             game=game)
 
     def _action_body(self):
-        self.calling_card.chose_own_card(self, self.chosen_card)
+        self.calling_card.chose_own_card(self.chosen_card)
 
 class ActionChooseOtherCard(Action):
     """
@@ -524,7 +524,7 @@ class ActionChooseOtherCard(Action):
             game=game)
 
     def _action_body(self):
-        self.calling_card.chose_other_card(self, self.chosen_card)
+        self.calling_card.chose_other_card(self.chosen_card)
 
 class Game(object):
     """

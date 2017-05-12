@@ -397,7 +397,7 @@ class CardTVStation(Card):
                 actions.append(gamelib.ActionChoosePlayer(self.owner, self.game, self, player))
         return actions
 
-    def chose_player(self, action, other_player):
+    def chose_player(self, other_player):
         """
         The user chose a player to steal from
         """
@@ -455,18 +455,29 @@ class CardBusinessCenter(Card):
 
         return actions
 
-    def chose_own_card(self, action, trade_owner):
+    def chose_own_card(self, trade_owner):
         """
         The user chose a player to steal from
         """
+        if trade_owner not in self.owner.deck:
+            raise Exception('Card "%s" is not in %s\'s deck' % (trade_owner, self.owner))
+        if trade_owner.family == Card.FAMILY_MAJOR:
+            raise Exception('Cannot trade "%s" because it is a %s' % (trade_owner, trade_owner.family_str()))
         self.game.add_event('Chose your own "%s" card for trade (from %s)' % (trade_owner, self))
         self.trade_owner = trade_owner
         self.check_finished()
 
-    def chose_other_card(self, action, trade_other):
+    def chose_other_card(self, trade_other):
         """
         The user chose a player to steal from
         """
+        if trade_other in self.owner.deck:
+            raise Exception('Card "%s" is already in %s\'s deck' % (trade_other, self.owner))
+        if trade_other not in trade_other.owner.deck:
+            # Shouldn't be possible to get in here
+            raise Exception('Card "%s" is not in %s\'s deck' % (trade_other, trade_other.owner))
+        if trade_other.family == Card.FAMILY_MAJOR:
+            raise Exception('Cannot trade "%s" because it is a %s' % (trade_other, trade_other.family_str()))
         self.game.add_event('Chose %s\'s card "%s" card for trade (from %s)' % (trade_other.owner, trade_other, self))
         self.trade_other = trade_other
         self.check_finished()
