@@ -433,21 +433,19 @@ class CardBusinessCenter(Card):
         """
         actions = []
 
-        if self.trade_owner is None:
-            seen_types = {}
-            for card in self.owner.deck:
-                if card.family != Card.FAMILY_MAJOR and type(card) not in seen_types:
-                    actions.append(gamelib.ActionChooseOwnCard(self.owner, self.game, self, card))
-                seen_types[type(card)] = True
+        seen_types = {}
+        for card in self.owner.deck:
+            if card.family != Card.FAMILY_MAJOR and type(card) not in seen_types:
+                actions.append(gamelib.ActionChooseOwnCard(self.owner, self.game, self, card))
+            seen_types[type(card)] = True
 
-        if self.trade_other is None:
-            for player in self.game.players:
-                if player != self.owner:
-                    seen_types = {}
-                    for card in player.deck:
-                        if card.family != Card.FAMILY_MAJOR and type(card) not in seen_types:
-                            actions.append(gamelib.ActionChooseOtherCard(self.owner, self.game, self, card))
-                        seen_types[type(card)] = True
+        for player in self.game.players:
+            if player != self.owner:
+                seen_types = {}
+                for card in player.deck:
+                    if card.family != Card.FAMILY_MAJOR and type(card) not in seen_types:
+                        actions.append(gamelib.ActionChooseOtherCard(self.owner, self.game, self, card))
+                    seen_types[type(card)] = True
 
         return actions
 
