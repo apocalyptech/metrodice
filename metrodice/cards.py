@@ -46,7 +46,7 @@ class Card(object):
             FAMILY_BOAT: 'Boat',
         }
 
-    def __init__(self, game, name, desc, short_desc, color, family, cost, activations):
+    def __init__(self, game, name, desc, short_desc, color, family, cost, activations, required_landmark=None):
         self.game = game
         self.name = name
         self.desc = desc
@@ -55,6 +55,7 @@ class Card(object):
         self.family = family
         self.activations = activations
         self.color = color
+        self.required_landmark = required_landmark
         self.owner = None
 
     def __lt__(self, other):
@@ -93,16 +94,13 @@ class Card(object):
     def family_str(self):
         return self.ENG_FAMILY[self.family]
 
-    def required_landmark(self):
-        return None
-
     def hit(self, player_rolled):
         """
         Perform the action on the card (ie: this number has been rolled).
         This is mostly a wrapper for any prerequisites which may exist.
         """
-        if self.required_landmark() is not None:
-            if not self.owner.has_landmark(self.required_landmark()):
+        if self.required_landmark is not None:
+            if not self.owner.has_landmark(self.required_landmark):
                 return
         return self._hit(player_rolled)
 
@@ -126,7 +124,7 @@ class CardBasicPayout(Card):
     A "basic" card which just has a simple payout.
     """
 
-    def __init__(self, game, name, desc, short_desc, color, family, cost, payout, activations):
+    def __init__(self, game, name, desc, short_desc, color, family, cost, payout, activations, required_landmark=None):
         self.payout = payout
         super(CardBasicPayout, self).__init__(
             game=game,
@@ -137,6 +135,7 @@ class CardBasicPayout(Card):
             family=family,
             cost=cost,
             activations=activations,
+            required_landmark=required_landmark,
         )
 
     def _hit(self, player_rolled):
@@ -154,7 +153,7 @@ class CardFactoryFamily(Card):
     A "factory" card whose payout depends on other card families you have
     """
 
-    def __init__(self, game, name, desc, short_desc, color, family, cost, target_family, payout, activations):
+    def __init__(self, game, name, desc, short_desc, color, family, cost, target_family, payout, activations, required_landmark=None):
         self.target_family = target_family
         self.payout = payout
         super(CardFactoryFamily, self).__init__(
@@ -166,6 +165,7 @@ class CardFactoryFamily(Card):
             family=family,
             cost=cost,
             activations=activations,
+            required_landmark=required_landmark,
         )
 
     def _hit(self, player_rolled):
@@ -189,7 +189,7 @@ class CardFactoryCard(Card):
     to CardFactoryFamily.
     """
 
-    def __init__(self, game, name, desc, short_desc, color, family, cost, target_card, payout, activations):
+    def __init__(self, game, name, desc, short_desc, color, family, cost, target_card, payout, activations, required_landmark=None):
         self.target_card_type = type(target_card)
         self.payout = payout
         super(CardFactoryCard, self).__init__(
@@ -201,6 +201,7 @@ class CardFactoryCard(Card):
             family=family,
             cost=cost,
             activations=activations,
+            required_landmark=required_landmark,
         )
 
     def _hit(self, player_rolled):
@@ -223,7 +224,7 @@ class CardBasicRed(Card):
     A "basic" red card which just has a simple fee.
     """
 
-    def __init__(self, game, name, desc, short_desc, color, family, cost, fee, activations):
+    def __init__(self, game, name, desc, short_desc, color, family, cost, fee, activations, required_landmark=None):
         self.fee = fee
         super(CardBasicRed, self).__init__(
             game=game,
@@ -234,6 +235,7 @@ class CardBasicRed(Card):
             family=family,
             cost=cost,
             activations=activations,
+            required_landmark=required_landmark,
         )
 
     def _hit(self, player_rolled):
@@ -597,10 +599,8 @@ class CardSushiBar(CardBasicRed):
             cost=4,
             fee=3,
             activations=[1],
+            required_landmark=LandmarkHarbor(),
         )
-
-    def required_landmark(self):
-        return LandmarkHarbor()
 
 class CardFlowerOrchard(CardBasicPayout):
 
@@ -732,10 +732,8 @@ class CardMackerelBoat(CardBasicPayout):
             cost=2,
             payout=3,
             activations=[8],
+            required_landmark=LandmarkHarbor(),
         )
-
-    def required_landmark(self):
-        return LandmarkHarbor()
 
 class CardFoodWarehouse(CardFactoryFamily):
 
@@ -768,10 +766,8 @@ class CardTunaBoat(Card):
             family=Card.FAMILY_BOAT,
             cost=5,
             activations=[12,13,14],
+            required_landmark=LandmarkHarbor(),
         )
-
-    def required_landmark(self):
-        return LandmarkHarbor()
 
     def _hit(self, player_rolled):
         """
