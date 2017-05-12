@@ -1,0 +1,1 @@
+coverage run --source=metrodice ./runtests.py && coverage report -m

@@ -19,15 +19,19 @@ Python 2).  The CLI client uses Python's "colorama" module for coloration.
 Note that at the moment it assumes a terminal with black text and a white
 background.
 
-Metro Dice is currently barely even a prototype.  It was programmed
+Metro Dice is, charitably, a work in progress.  It was programmed
 barreling headlong into the code without much, if any, thought as to
 overall architecture and sensibility.  At the moment, the players,
 expansion to use, and market style to use are just hardcoded up at the
-top of the `CLI` class.  There are no unit tests, and extremely
-questionable implementation details abound.  About the only thing that can
-be said in its favor is that it *does* work, and that at least there's a
-bare minimum of backend/frontend separation (implementing a GUI frontend
-shouldn't require any modifications to `game.py` or `cards.py`).
+top of the `CLI` class.  Extremely questionable implementation details
+abound.  In its favor, though:
+
+1) It *does* work.
+2) There's at least a bare minimum of backend/frontend separation
+   (implementing a GUI frontend shouldn't require any modifications to
+   `game.py` or `cards.py`).
+3) Unit tests are coming along - at the moment they only cover `cards.py`, but
+   it's getting there.
 
 At the moment it implements the base Machi Koro game plus the *Harbor*
 expansion, which is the mode that's enabled by default.  It additionally
