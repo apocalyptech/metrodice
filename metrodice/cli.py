@@ -4,7 +4,7 @@
 import sys
 import colorama
 
-from .game import Player, Game
+from .gamelib import Player, Game
 from .cards import Card
 
 class CLI(object):

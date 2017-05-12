@@ -4,7 +4,7 @@
 import math
 import random
 
-from . import game as gamelib
+from . import gamelib
 
 class Card(object):
     """
