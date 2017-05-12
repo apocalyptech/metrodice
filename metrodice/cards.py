@@ -75,10 +75,14 @@ class Card(object):
         if len(self.activations) > len(other.activations):
             return False
 
-        # Finally, the only other tiebreaker should be card color.
-        # Our sort order here will actually be determined by the order
-        # the colors are defined in, above.
-        return (self.color < other.color)
+        # The next tiebreaker is color.  Our sort order here will
+        # actually be determined by the order the colors are defined
+        # in, above.
+        if self.color != other.color:
+            return (self.color < other.color)
+
+        # Finally, sort by name
+        return (self.name < other.name)
 
     def __repr__(self):
         return self.name
