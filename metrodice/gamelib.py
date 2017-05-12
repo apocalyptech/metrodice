@@ -118,141 +118,6 @@ class Player(object):
                 return False
         return True
 
-class Expansion(object):
-    """
-    Base class for expansions, so they can be chosen as the game gets
-    set up.
-    """
-
-    def __init__(self, name, deck_regular, deck_major, landmarks):
-        self.name = name
-        self.deck_regular = deck_regular
-        self.deck_major = deck_major
-        self.landmarks = landmarks
-
-    def __add__(self, other):
-        """
-        Method to add two Expansions together.  That way we can
-        just add individual expansions to get combinations.
-        """
-
-        return Expansion(
-            name = '%s + %s' % (self.name, other.name),
-            deck_regular = self.deck_regular + other.deck_regular,
-            deck_major = self.deck_major + other.deck_major,
-            landmarks = self.landmarks + other.landmarks,
-        )
-
-    def generate_deck(self, game):
-        """
-        Given a Game object, generate all the cards we'll use for the game.
-        """
-
-        # Empty list
-        deck = []
-
-        # First generate regular cards with fixed quantity
-        for (qty, card) in self.deck_regular:
-            for num in range(qty):
-                deck.append(card(game))
-
-        # Now generate major establishments, whose quantity depends on
-        # the number of players
-        for num in range(len(game.players)):
-            for card in self.deck_major:
-                deck.append(card(game))
-
-        # Now return
-        return deck
-
-class ExpansionBase(Expansion):
-    """
-    The base game "expansion" - always active.
-    """
-
-    def __init__(self):
-
-        # Cards which have a fixed quantity.  Tuples of (qty, card).
-        # Thus far there's always six of them, but this way we have
-        # flexibility.
-        deck_regular = [
-            (6, cards.CardWheat),
-            (6, cards.CardRanch),
-            (6, cards.CardBakery),
-            (6, cards.CardCafe),
-            (6, cards.CardConvenienceStore),
-            (6, cards.CardForest),
-            (6, cards.CardMine),
-            (6, cards.CardFamilyRestaurant),
-            (6, cards.CardAppleOrchard),
-            (6, cards.CardCheeseFactory),
-            (6, cards.CardFurnitureFactory),
-            (6, cards.CardFruitAndVeg),
-        ]
-
-        # Major Establishments only have as many cards as there
-        # are players, since there can't be duplicates
-        deck_major = [
-            cards.CardStadium,
-            cards.CardTVStation,
-            cards.CardBusinessCenter,
-        ]
-
-        # Next set up our landmarks
-        landmarks = [
-            cards.LandmarkTrainStation,
-            cards.LandmarkShoppingMall,
-            cards.LandmarkAmusementPark,
-            cards.LandmarkRadioTower,
-        ]
-
-        # Now do the rest of our initialization
-        super(ExpansionBase, self).__init__(name='Base Game',
-            deck_regular=deck_regular,
-            deck_major=deck_major,
-            landmarks=landmarks)
-
-class ExpansionHarbor(Expansion):
-    """
-    The Harbor expansion
-    """
-
-    def __init__(self):
-
-        # Cards which have a fixed quantity.  Tuples of (qty, card).
-        # Thus far there's always six of them, but this way we have
-        # flexibility.
-        deck_regular = [
-            (6, cards.CardSushiBar),
-            (6, cards.CardFlowerOrchard),
-            (6, cards.CardFlowerShop),
-            (6, cards.CardPizzaJoint),
-            (6, cards.CardHamburgerStand),
-            (6, cards.CardMackerelBoat),
-            (6, cards.CardFoodWarehouse),
-            (6, cards.CardTunaBoat),
-        ]
-
-        # Major Establishments only have as many cards as there
-        # are players, since there can't be duplicates
-        deck_major = [
-            cards.CardPublisher,
-            cards.CardTaxOffice,
-        ]
-
-        # Next set up our landmarks
-        landmarks = [
-            cards.LandmarkCityHall,
-            cards.LandmarkHarbor,
-            cards.LandmarkAirport,
-        ]
-
-        # Now populate a bit
-        super(ExpansionHarbor, self).__init__(name='Harbor',
-            deck_regular=deck_regular,
-            deck_major=deck_major,
-            landmarks=landmarks)
-
 class MarketBase(object):
     """
     The base 'market' class which is used to populate the available
@@ -682,7 +547,7 @@ class Game(object):
             STATE_GAME_OVER: 'Game Over',
         }
 
-    def __init__(self, players):
+    def __init__(self, players, expansion, market):
         """
         Initialization.  Set things up!  The Expansion/Market stuff
         is just hardcoded for now.
@@ -694,10 +559,8 @@ class Game(object):
 
         # Now set up the main vars
         self.players = players
-        self.expansion = ExpansionBase() + ExpansionHarbor()
-        #self.market = MarketBase(self, self.expansion)
-        self.market = MarketHarbor(self, self.expansion)
-        #self.market = MarketBrightLights(self, self.expansion)
+        self.expansion = expansion
+        self.market = market(self, self.expansion)
 
         # Populate various player bits which rely on expansion and market
         for player in self.players:

@@ -947,3 +947,115 @@ class LandmarkAirport(Landmark):
 
     def _deconstruct_action(self):
         self.player.gets_ten_coins_for_not_building = False
+
+# Now set up our expansions
+
+class Expansion(object):
+    """
+    Base class for expansions, so they can be chosen as the game gets
+    set up.  For convenience, even the base game is considered an
+    "expansion".
+
+    Arguments:
+    name -- The name of the expansion
+    deck_regular -- Cards which have a fixed quantity.  Tuples of
+        (qty, card).  Thus far there's always six of them, but this
+        way we have flexibility.  "card" should be a class type.
+    deck_major -- Major Establishments only have as many cards as
+        there are players, since there can't be duplicates.  Just a
+        list of class types
+    landmarks -- List of landmarks (also class types)
+    """
+
+    def __init__(self, name, deck_regular, deck_major, landmarks):
+        self.name = name
+        self.deck_regular = deck_regular
+        self.deck_major = deck_major
+        self.landmarks = landmarks
+
+    def __add__(self, other):
+        """
+        Method to add two Expansions together.  That way we can
+        just add individual expansions to get combinations.
+        """
+
+        return Expansion(
+            name = '%s + %s' % (self.name, other.name),
+            deck_regular = self.deck_regular + other.deck_regular,
+            deck_major = self.deck_major + other.deck_major,
+            landmarks = self.landmarks + other.landmarks,
+        )
+
+    def generate_deck(self, game):
+        """
+        Given a Game object, generate all the cards we'll use for the game.
+        """
+
+        # Empty list
+        deck = []
+
+        # First generate regular cards with fixed quantity
+        for (qty, card) in self.deck_regular:
+            for num in range(qty):
+                deck.append(card(game))
+
+        # Now generate major establishments, whose quantity depends on
+        # the number of players
+        for num in range(len(game.players)):
+            for card in self.deck_major:
+                deck.append(card(game))
+
+        # Now return
+        return deck
+
+expansion_base = Expansion(
+    name = 'Base Game',
+    deck_regular = [
+        (6, CardWheat),
+        (6, CardRanch),
+        (6, CardBakery),
+        (6, CardCafe),
+        (6, CardConvenienceStore),
+        (6, CardForest),
+        (6, CardMine),
+        (6, CardFamilyRestaurant),
+        (6, CardAppleOrchard),
+        (6, CardCheeseFactory),
+        (6, CardFurnitureFactory),
+        (6, CardFruitAndVeg),
+    ],
+    deck_major = [
+        CardStadium,
+        CardTVStation,
+        CardBusinessCenter,
+    ],
+    landmarks = [
+        LandmarkTrainStation,
+        LandmarkShoppingMall,
+        LandmarkAmusementPark,
+        LandmarkRadioTower,
+    ],
+)
+
+expansion_harbor = Expansion(
+    name = 'Harbor',
+    deck_regular = [
+        (6, CardSushiBar),
+        (6, CardFlowerOrchard),
+        (6, CardFlowerShop),
+        (6, CardPizzaJoint),
+        (6, CardHamburgerStand),
+        (6, CardMackerelBoat),
+        (6, CardFoodWarehouse),
+        (6, CardTunaBoat),
+    ],
+    deck_major = [
+        CardPublisher,
+        CardTaxOffice,
+    ],
+    landmarks = [
+        LandmarkCityHall,
+        LandmarkHarbor,
+        LandmarkAirport,
+    ],
+)

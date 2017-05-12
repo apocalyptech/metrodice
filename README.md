@@ -21,18 +21,18 @@ background.
 
 Metro Dice is currently barely even a prototype.  It was programmed
 barreling headlong into the code without much, if any, thought as to
-overall architecture and sensibility.  At the moment, the expansion/market
-selections are just hardcoded up at the top of the `Game` class, and
-players are hardcoded in the `CLI` class.  There are no unit tests, and
-extremely questionable implementation details abound.  About the only thing
-that can be said in its favor is that it *does* work, and that at least
-there's a bare minimum of backend/frontend separation (implementing a GUI
-frontend shouldn't require any modifications to `game.py` or `cards.py`).
+overall architecture and sensibility.  At the moment, the players,
+expansion to use, and market style to use are just hardcoded up at the
+top of the `CLI` class.  There are no unit tests, and extremely
+questionable implementation details abound.  About the only thing that can
+be said in its favor is that it *does* work, and that at least there's a
+bare minimum of backend/frontend separation (implementing a GUI frontend
+shouldn't require any modifications to `game.py` or `cards.py`).
 
 At the moment it implements the base Machi Koro game plus the *Harbor*
 expansion, which is the mode that's enabled by default.  It additionally
 supports using a *Bright Lights, Big City* style market, though you'll have
-to change the definition in `Game.__init__` to enable that.  I'll likely be
+to change the definition in `CLI` to enable that.  I'll likely be
 adding in *Millionaire's Row* cards as well, and probably a full *Bright
 Lights, Big City* setting.  Also, you know, making it an actually
 reasonable app instead of a glorified bit of spaghetti.

@@ -4,8 +4,8 @@
 import sys
 import colorama
 
-from .gamelib import Player, Game
-from .cards import Card
+from .gamelib import Player, Game, MarketBase, MarketHarbor, MarketBrightLights
+from .cards import Card, expansion_base, expansion_harbor
 
 class CLI(object):
     """
@@ -19,7 +19,15 @@ class CLI(object):
         self.players = []
         self.players.append(Player(name='CJ'))
         self.players.append(Player(name='Bob'))
-        self.game  = Game(self.players)
+
+        #expansion = expansion_base
+        expansion = expansion_base + expansion_harbor
+
+        #market = MarketBase
+        market = MarketHarbor
+        #market = MarketBrightLights
+
+        self.game  = Game(self.players, expansion, market)
         
         error_msg = None
         while True:
