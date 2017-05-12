@@ -1,9 +1,9 @@
 Metro Dice
 ==========
 
-Metro Dice is an implementation of the board game Machi Koro, by Masao
-Suganuma and published by IDW Games, Grounding Inc, and Pandasaurus Games
-in the U.S., and many others elsewhere.
+Metro Dice is an implementation of the board/card game Machi Koro. 
+Machi Koro was designed by Masao Suganuma and published by IDW Games,
+Grounding Inc, and Pandasaurus Games in the U.S., and many others elsewhere.
 
 https://boardgamegeek.com/boardgame/143884/machi-koro
 
