@@ -189,8 +189,8 @@ class CardFactoryCard(Card):
     to CardFactoryFamily.
     """
 
-    def __init__(self, game, name, desc, short_desc, color, family, cost, target_card, payout, activations, required_landmark=None):
-        self.target_card_type = type(target_card)
+    def __init__(self, game, name, desc, short_desc, color, family, cost, target_card_type, payout, activations, required_landmark=None):
+        self.target_card_type = target_card_type
         self.payout = payout
         super(CardFactoryCard, self).__init__(
             game=game,
@@ -628,7 +628,7 @@ class CardFlowerShop(CardFactoryCard):
             color=Card.COLOR_GREEN,
             family=Card.FAMILY_BREAD,
             cost=1,
-            target_card=CardFlowerOrchard(game),
+            target_card_type=CardFlowerOrchard,
             payout=1,
             activations=[6],
         )
