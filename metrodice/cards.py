@@ -599,7 +599,7 @@ class CardSushiBar(CardBasicRed):
             cost=4,
             fee=3,
             activations=[1],
-            required_landmark=LandmarkHarbor(),
+            required_landmark=LandmarkHarbor,
         )
 
 class CardFlowerOrchard(CardBasicPayout):
@@ -732,7 +732,7 @@ class CardMackerelBoat(CardBasicPayout):
             cost=2,
             payout=3,
             activations=[8],
-            required_landmark=LandmarkHarbor(),
+            required_landmark=LandmarkHarbor,
         )
 
 class CardFoodWarehouse(CardFactoryFamily):
@@ -766,7 +766,7 @@ class CardTunaBoat(Card):
             family=Card.FAMILY_BOAT,
             cost=5,
             activations=[12,13,14],
-            required_landmark=LandmarkHarbor(),
+            required_landmark=LandmarkHarbor,
         )
 
     def _hit(self, player_rolled):

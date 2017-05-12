@@ -66,10 +66,11 @@ class Player(object):
 
     def has_landmark(self, compare_landmark):
         """
-        Returns True if the player has constructed the given landmark
+        Returns True if the player has constructed the given landmark.
+        `compare_landmark` should be a type, not an instance.
         """
         for landmark in self.landmarks:
-            if type(landmark) == type(compare_landmark):
+            if type(landmark) == compare_landmark:
                 return landmark.constructed
         return False
 
