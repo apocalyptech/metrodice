@@ -18,6 +18,13 @@ class Player(object):
         self.landmarks = []
         self.rolled_doubles = False
 
+        # Main card list is stored in self.deck, but we'll
+        # use a little dict as well so we can look up card "hits"
+        # after die rolls, rather than having to loop through all
+        # cards.  Not that it really matters given the size of
+        # our data, but whatever.
+        self.deck_dict = {n: [] for n in range(1, 15)}
+
         # Abilities unlocked by Landmarks.  False when not unlocked,
         # or the Landmark object if they are.  (So that we can report
         # which Landmark caused an effect without having to hardcode
@@ -76,8 +83,8 @@ class Player(object):
         well, in case there are interactions to be had (mostly just for
         reds).
         """
-        for card in self.deck:
-            if card.color == color and roll in card.activations:
+        for card in self.deck_dict[roll]:
+            if card.color == color:
                 card.hit(player_rolled)
 
     def add_card(self, card):
@@ -89,14 +96,18 @@ class Player(object):
             card.owner.remove_card(card)
 
         # Now add it to our own
-        self.deck.append(card)
         card.owner = self
+        self.deck.append(card)
+        for num in card.activations:
+            self.deck_dict[num].append(card)
 
     def remove_card(self, card):
         """
         Removes a card from our deck
         """
         self.deck.remove(card)
+        for num in card.activations:
+            self.deck_dict[num].remove(card)
 
     def has_won(self):
         """
