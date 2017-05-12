@@ -3,3 +3,9 @@ Real basic AI to play against
 Some of our internal structures are a bit lame.  Player deck, for
 instance, is just an unorganized list.  Various things along those lines
 could probably be reimplemented far better.
+
+The "events" which are currently just strings passed blindly back to
+the user should really be more intelligent objects of their own, which
+are machine-understandable.  A GUI might want to draw a picture of
+dice in place of the numbers, for rolls, for instance, or allow
+mouseovering a player or card name.
