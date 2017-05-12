@@ -535,8 +535,6 @@ class CardFruitAndVeg(CardFactoryFamily):
             family=Card.FAMILY_FRUIT,
             cost=2,
             target_family=Card.FAMILY_WHEAT,
-            #payout=10,
-            #activations=list(range(1,13)),
             payout=2,
             activations=[11,12],
         )
