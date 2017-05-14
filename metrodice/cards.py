@@ -982,6 +982,9 @@ class Expansion(object):
         self.deck_major = deck_major
         self.landmarks = landmarks
 
+    def __repr__(self):
+        return self.name
+
     def __add__(self, other):
         """
         Method to add two Expansions together.  That way we can

@@ -1,6 +1,10 @@
 #!/usr/bin/python
 # vim: set expandtab tabstop=4 shiftwidth=4:
 
-from metrodice.cli import CLI
+#from metrodice.cli import CLI
+#
+#cli = CLI()
 
-cli = CLI()
+from metrodice.textapp import TextApp
+
+app = TextApp()

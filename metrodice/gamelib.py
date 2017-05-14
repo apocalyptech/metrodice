@@ -129,7 +129,8 @@ class MarketBase(object):
     `_check_replace()`
     """
 
-    def __init__(self, game, expansion=None, deck=None):
+    def __init__(self, game, name='Base Market', expansion=None, deck=None):
+        self.name = name
         self.game = game
         if deck is not None:
             self.deck = deck
@@ -139,6 +140,9 @@ class MarketBase(object):
             raise Exception('One of expansion or deck must be passed to MarketBase.__init__')
         self.available = {}
         self._populate_initial()
+
+    def __repr__(self):
+        return self.name
 
     def _add_to_available(self, card):
         """
@@ -201,6 +205,7 @@ class MarketHarbor(MarketBase):
         self.pile_limit = pile_limit
         super(MarketHarbor, self).__init__(
             game=game,
+            name='Harbor Market',
             expansion=expansion,
             deck=deck,
         )
@@ -231,6 +236,15 @@ class MarketBrightLights(MarketBase):
     hit on 1-6, four "regular" which hit on 7+, and two major establishments.
     types of cards available, and replenish as needed.
     """
+
+    def __init__(self, game, expansion=None, deck=None):
+        self.pile_limit = pile_limit
+        super(MarketBrightLights, self).__init__(
+            game=game,
+            name='Bright Lights, Big City Market',
+            expansion=expansion,
+            deck=deck,
+        )
 
     def _populate_initial(self):
         """
@@ -441,7 +455,7 @@ class ActionBuyCard(Action):
         Buy the specified card
         """
         self.card = card
-        super(ActionBuyCard, self).__init__(desc="Buy Card: %s for %d" % (card, card.cost),
+        super(ActionBuyCard, self).__init__(desc="Buy Card: $%d for %s (%s) %s [%s]" % (card.cost, card, card.short_desc, card.activations, card.family_str()),
             player=player,
             game=game)
 
