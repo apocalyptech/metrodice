@@ -129,7 +129,7 @@ class MarketBase(object):
     `_check_replace()`
     """
 
-    def __init__(self, game, name='Base Market', expansion=None, deck=None):
+    def __init__(self, game, expansion=None, name='Base Market', deck=None):
         self.name = name
         self.game = game
         if deck is not None:
