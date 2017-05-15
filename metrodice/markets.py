@@ -19,7 +19,7 @@ class MarketBase(object):
         self.name = name
         self.game = game
         if deck is not None:
-            self.deck = deck
+            self.deck = list(deck)
         elif expansion is not None:
             self.deck = expansion.generate_deck(game)
         else:
@@ -118,13 +118,12 @@ class MarketHarbor(MarketBase):
 class MarketBrightLights(MarketBase):
     """
     The market according to the Bright Lights, Big City version.  This one
-    keeps three "separate" pools of cards available - four "regular" which
-    hit on 1-6, four "regular" which hit on 7+, and two major establishments.
-    types of cards available, and replenish as needed.
+    keeps three "separate" pools of cards available - five "regular" which
+    hit on 1-6, five "regular" which hit on 7+, and two major establishments.
+    We're implementing that as three separate MarketHarbor markets, internally.
     """
 
     def __init__(self, game, expansion=None, deck=None):
-        self.pile_limit = pile_limit
         super(MarketBrightLights, self).__init__(
             game=game,
             name='Bright Lights, Big City Market',
@@ -153,9 +152,9 @@ class MarketBrightLights(MarketBase):
         # Store this all internally as some MarketHarbor objects.
         # This is rather improper but IMO is less messy than some
         # other ways of doing it.
-        self.stock_low = MarketHarbor(self.game, deck=low_cards, pile_limit=4)
+        self.stock_low = MarketHarbor(self.game, deck=low_cards, pile_limit=5)
         self.stock_major = MarketHarbor(self.game, deck=major_establishments, pile_limit=2)
-        self.stock_high = MarketHarbor(self.game, deck=high_cards, pile_limit=4)
+        self.stock_high = MarketHarbor(self.game, deck=high_cards, pile_limit=5)
         self.markets = [self.stock_low, self.stock_major, self.stock_high]
 
         # And do our initial population
