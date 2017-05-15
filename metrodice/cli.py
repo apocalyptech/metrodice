@@ -4,7 +4,8 @@
 import sys
 import colorama
 
-from .gamelib import Player, Game, MarketBase, MarketHarbor, MarketBrightLights
+from . import markets
+from .gamelib import Player, Game
 from .cards import Card, expansion_base, expansion_harbor
 
 class CLI(object):
@@ -23,9 +24,9 @@ class CLI(object):
         #expansion = expansion_base
         expansion = expansion_base + expansion_harbor
 
-        #market = MarketBase
-        market = MarketHarbor
-        #market = MarketBrightLights
+        #market = markets.MarketBase
+        market = markets.MarketHarbor
+        #market = markets.MarketBrightLights
 
         self.game  = Game(self.players, expansion, market)
         
