@@ -43,13 +43,19 @@ class ActionRollOne(Action):
         super(ActionRollOne, self).__init__(desc='%s One Die' % (verb),
             player=player)
 
-    def _action_body(self):
-        roll = random.randint(1, 6)
+    def _rolled_dice(self, roll):
+        """
+        This is pulled out so that we can definitively test that cards are being hit.
+        """
         self.game.rolled_dice = 1
         self.game.roll_result = roll
         self.player.rolled_doubles = False
         self.game.add_event('Player "%s" rolled one die and got a %d' % (self.player, roll))
         self.game.player_rolled(roll, self.num_to_reroll)
+
+    def _action_body(self):
+        roll = random.randint(1, 6)
+        self._rolled_dice(roll)
 
 class ActionRollTwo(Action):
     """
@@ -68,10 +74,12 @@ class ActionRollTwo(Action):
         super(ActionRollTwo, self).__init__(desc='%s Two Dice' % (verb),
             player=player)
 
-    def _action_body(self):
+    def _rolled_dice(self, roll1, roll2):
+        """
+        This is pulled out into its own function so that the rolled_doubles
+        logic can be tested without having to deal with random numbers.
+        """
         self.game.rolled_dice = 2
-        roll1 = random.randint(1, 6)
-        roll2 = random.randint(1, 6)
         if roll1 == roll2:
             self.player.rolled_doubles = True
         else:
@@ -81,6 +89,11 @@ class ActionRollTwo(Action):
         self.game.roll_result = total
         self.game.add_event('Player "%s" rolled two dice and got a %d (%d & %d)' % (self.player, total, roll1, roll2))
         self.game.player_rolled(total, self.num_to_reroll)
+
+    def _action_body(self):
+        roll1 = random.randint(1, 6)
+        roll2 = random.randint(1, 6)
+        self._rolled_dice(roll1, roll2)
 
 class ActionKeepRoll(Action):
     """
@@ -153,6 +166,10 @@ class ActionBuyCard(Action):
             player=player)
 
     def _action_body(self):
+        if self.card.cost > self.player.money:
+            raise Exception('Player "%s" ($%d in bank) cannot afford card "%s" (cost: $%d)' % (
+                self.player, self.player.money,
+                self.card, self.card.cost))
         self.player.money -= self.card.cost
         self.player.add_card(self.game.market.take_card(self.card))
         self.game.add_event('Player "%s" bought card "%s" for %d.' % (self.player, self.card, self.card.cost))
@@ -172,6 +189,10 @@ class ActionBuyLandmark(Action):
             player=player)
 
     def _action_body(self):
+        if self.landmark.cost > self.player.money:
+            raise Exception('Player "%s" ($%d in bank) cannot afford landmark "%s" (cost: $%d)' % (
+                self.player, self.player.money,
+                self.landmark, self.landmark.cost))
         self.player.money -= self.landmark.cost
         self.landmark.construct()
         self.game.add_event('Player "%s" constructed landmark "%s" for %d.' % (self.player, self.landmark, self.landmark.cost))
