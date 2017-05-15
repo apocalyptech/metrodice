@@ -2484,6 +2484,13 @@ class ExpansionTests(unittest.TestCase):
             landmarks=[cards.LandmarkAirport],
             )
 
+    def test_repr_is_name(self):
+        """
+        repr() for an Expansion should be the name
+        """
+        self.assertEqual(repr(self.e1), 'One')
+        self.assertEqual(repr(self.e2), 'Two')
+
     def test_addition(self):
         """
         Tests adding two Expansion objects to each other.
