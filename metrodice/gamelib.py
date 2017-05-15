@@ -183,35 +183,35 @@ class Game(object):
         actions = []
 
         if self.state == Game.STATE_TURN_BEGIN:
-            actions.append(actionlib.ActionRollOne(self.current_player, self))
+            actions.append(actionlib.ActionRollOne(self.current_player))
             if self.current_player.can_roll_two_dice:
-                actions.append(actionlib.ActionRollTwo(self.current_player, self))
+                actions.append(actionlib.ActionRollTwo(self.current_player))
 
         elif self.state == Game.STATE_PURCHASE_DECISION:
-            actions.append(actionlib.ActionSkipBuy(self.current_player, self))
+            actions.append(actionlib.ActionSkipBuy(self.current_player))
             cards_available = self.market.cards_available()
             for card in sorted(cards_available.keys()):
                 count = cards_available[card]
                 if count > 0 and self.current_player.money >= card.cost:
                     if card.family == cards.Card.FAMILY_MAJOR and self.current_player.has_card(card):
                         continue
-                    actions.append(actionlib.ActionBuyCard(self.current_player, self, card))
+                    actions.append(actionlib.ActionBuyCard(self.current_player, card))
             for landmark in sorted(self.current_player.landmarks):
                 if not landmark.constructed and self.current_player.money >= landmark.cost:
-                    actions.append(actionlib.ActionBuyLandmark(self.current_player, self, landmark))
+                    actions.append(actionlib.ActionBuyLandmark(self.current_player, landmark))
 
         elif self.state == Game.STATE_ASK_REROLL:
-            actions.append(actionlib.ActionKeepRoll(self.current_player, self, self.roll_result))
+            actions.append(actionlib.ActionKeepRoll(self.current_player, self.roll_result))
             if self.rolled_dice == 1:
-                actions.append(actionlib.ActionRollOne(self.current_player, self, num_to_reroll=None))
+                actions.append(actionlib.ActionRollOne(self.current_player, num_to_reroll=None))
             elif self.rolled_dice == 2:
-                actions.append(actionlib.ActionRollTwo(self.current_player, self, num_to_reroll=None))
+                actions.append(actionlib.ActionRollTwo(self.current_player, num_to_reroll=None))
             else:
                 raise Exception('Unkown number of dice rolled: %d' % (self.rolled_dice))
 
         elif self.state == Game.STATE_ASK_ADD_TO_ROLL:
-            actions.append(actionlib.ActionKeepRoll(self.current_player, self, self.roll_result, False))
-            actions.append(actionlib.ActionAddToRoll(self.current_player, self, self.roll_result))
+            actions.append(actionlib.ActionKeepRoll(self.current_player, self.roll_result, False))
+            actions.append(actionlib.ActionAddToRoll(self.current_player, self.roll_result))
 
         elif self.state == Game.STATE_ESTABLISHMENT_CHOICE:
             for card in self.state_cards:

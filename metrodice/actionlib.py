@@ -10,10 +10,10 @@ class Action(object):
     in subclasses.
     """
 
-    def __init__(self, desc, player, game):
+    def __init__(self, desc, player):
         self.desc = desc
         self.player = player
-        self.game = game
+        self.game = player.game
 
     def do_action(self):
         """
@@ -31,7 +31,7 @@ class ActionRollOne(Action):
     Action to roll a single die
     """
 
-    def __init__(self, player, game, num_to_reroll=1):
+    def __init__(self, player, num_to_reroll=1):
         """
         Roll the die
         """
@@ -41,8 +41,7 @@ class ActionRollOne(Action):
         else:
             verb = 'Roll'
         super(ActionRollOne, self).__init__(desc='%s One Die' % (verb),
-            player=player,
-            game=game)
+            player=player)
 
     def _action_body(self):
         roll = random.randint(1, 6)
@@ -57,7 +56,7 @@ class ActionRollTwo(Action):
     Action to roll two single dice
     """
 
-    def __init__(self, player, game, num_to_reroll=2):
+    def __init__(self, player, num_to_reroll=2):
         """
         Roll the dice
         """
@@ -67,8 +66,7 @@ class ActionRollTwo(Action):
         else:
             verb = 'Roll'
         super(ActionRollTwo, self).__init__(desc='%s Two Dice' % (verb),
-            player=player,
-            game=game)
+            player=player)
 
     def _action_body(self):
         self.game.rolled_dice = 2
@@ -89,15 +87,14 @@ class ActionKeepRoll(Action):
     Action to keep the roll you made (Radio Tower)
     """
 
-    def __init__(self, player, game, roll, allow_addition=True):
+    def __init__(self, player, roll, allow_addition=True):
         """
         Roll the dice
         """
         self.roll = roll
         self.allow_addition = allow_addition
         super(ActionKeepRoll, self).__init__(desc='Keep your die roll of %d' % (roll),
-            player=player,
-            game=game)
+            player=player)
 
     def _action_body(self):
         self.game.add_event('Player "%s" kept the die roll of %d' % (self.player, self.roll))
@@ -108,15 +105,14 @@ class ActionAddToRoll(Action):
     Action to add 2 to the dice roll
     """
 
-    def __init__(self, player, game, roll, num_to_add=2):
+    def __init__(self, player, roll, num_to_add=2):
         """
         Add to roll
         """
         self.roll = roll
         self.num_to_add = num_to_add
         super(ActionAddToRoll, self).__init__(desc='Add %d to roll (result: %d)' % (num_to_add, roll + num_to_add),
-            player=player,
-            game=game)
+            player=player)
 
     def _action_body(self):
         new_roll = self.roll + self.num_to_add
@@ -128,13 +124,12 @@ class ActionSkipBuy(Action):
     Action to not actually buy anything.  (Exciting!)
     """
 
-    def __init__(self, player, game):
+    def __init__(self, player):
         """
         Skip the buy phase
         """
         super(ActionSkipBuy, self).__init__(desc="Don't buy anything",
-            player=player,
-            game=game)
+            player=player)
 
     def _action_body(self):
         if self.player.gets_ten_coins_for_not_building:
@@ -149,14 +144,13 @@ class ActionBuyCard(Action):
     Action to buy a card.
     """
 
-    def __init__(self, player, game, card):
+    def __init__(self, player, card):
         """
         Buy the specified card
         """
         self.card = card
         super(ActionBuyCard, self).__init__(desc="Buy Card: $%d for %s (%s) %s [%s]" % (card.cost, card, card.short_desc, card.activations, card.family_str()),
-            player=player,
-            game=game)
+            player=player)
 
     def _action_body(self):
         self.player.money -= self.card.cost
@@ -169,14 +163,13 @@ class ActionBuyLandmark(Action):
     Action to buy a landmark.
     """
 
-    def __init__(self, player, game, landmark):
+    def __init__(self, player, landmark):
         """
         Buy the specified landmark
         """
         self.landmark = landmark
         super(ActionBuyLandmark, self).__init__(desc="Construct Landmark: %s for %d" % (landmark, landmark.cost),
-            player=player,
-            game=game)
+            player=player)
 
     def _action_body(self):
         self.player.money -= self.landmark.cost
@@ -190,15 +183,14 @@ class ActionChoosePlayer(Action):
     Action to choose one of the other players
     """
 
-    def __init__(self, player, game, card, other_player):
+    def __init__(self, player, card, other_player):
         """
         Choose a player
         """
         self.card = card
         self.other_player = other_player
         super(ActionChoosePlayer, self).__init__(desc='Choose player "%s" (%d coin(s)) (from %s)' % (other_player, other_player.money, card),
-            player=player,
-            game=game)
+            player=player)
 
     def _action_body(self):
         self.card.chose_player(self.other_player)
@@ -208,15 +200,14 @@ class ActionChooseOwnCard(Action):
     Action to choose a card of our own
     """
 
-    def __init__(self, player, game, calling_card, chosen_card):
+    def __init__(self, player, calling_card, chosen_card):
         """
         Choose a card
         """
         self.calling_card = calling_card
         self.chosen_card = chosen_card
         super(ActionChooseOwnCard, self).__init__(desc='Choose your card to trade: %s (from %s)' % (chosen_card, calling_card),
-            player=player,
-            game=game)
+            player=player)
 
     def _action_body(self):
         self.calling_card.chose_own_card(self.chosen_card)
@@ -226,15 +217,14 @@ class ActionChooseOtherCard(Action):
     Action to choose someone else's card
     """
 
-    def __init__(self, player, game, calling_card, chosen_card):
+    def __init__(self, player, calling_card, chosen_card):
         """
         Choose a card
         """
         self.calling_card = calling_card
         self.chosen_card = chosen_card
         super(ActionChooseOtherCard, self).__init__(desc='Choose %s\'s card to receive: %s (for %s)' % (chosen_card.owner, chosen_card, calling_card),
-            player=player,
-            game=game)
+            player=player)
 
     def _action_body(self):
         self.calling_card.chose_other_card(self.chosen_card)
