@@ -7,7 +7,8 @@
 import sys
 import urwid
 
-from .gamelib import Player, Game, MarketBase, MarketHarbor, MarketBrightLights, ActionBuyCard
+from . import actionlib
+from .gamelib import Player, Game, MarketBase, MarketHarbor, MarketBrightLights
 from .cards import Card, expansion_base, expansion_harbor
 
 class TextApp(object):
@@ -239,7 +240,7 @@ class TextApp(object):
         # Add new ones.
         for action in self.game.actions_available:
             button = urwid.Button(action.desc)
-            if type(action) == ActionBuyCard:
+            if type(action) == actionlib.ActionBuyCard:
                 attr_map = self.style_card(action.card)
             else:
                 attr_map = 'action_available'

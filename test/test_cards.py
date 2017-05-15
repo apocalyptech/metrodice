@@ -2,10 +2,9 @@
 # vim: set expandtab tabstop=4 shiftwidth=4:
 
 import unittest
-from metrodice import cards
+from metrodice import cards, actionlib
 from metrodice.gamelib import Player, Game, \
-        MarketBase, MarketHarbor, MarketBrightLights, \
-        ActionChooseOwnCard, ActionChooseOtherCard
+        MarketBase, MarketHarbor, MarketBrightLights
 
 class BaseCardTests(unittest.TestCase):
     """
@@ -1896,9 +1895,9 @@ class CardBusinessCenterTests(BaseCardTests):
         own_targets = []
         other_targets = []
         for action in actions:
-            if type(action) == ActionChooseOwnCard:
+            if type(action) == actionlib.ActionChooseOwnCard:
                 own_targets.append(action.chosen_card)
-            elif type(action) == ActionChooseOtherCard:
+            elif type(action) == actionlib.ActionChooseOtherCard:
                 other_targets.append(action.chosen_card)
             else:
                 self.fail('Unknown action type found: %d' % (type(action)))

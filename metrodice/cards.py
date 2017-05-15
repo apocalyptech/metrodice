@@ -4,7 +4,7 @@
 import math
 import random
 
-from . import gamelib
+from . import gamelib, actionlib
 
 class Card(object):
     """
@@ -394,7 +394,7 @@ class CardTVStation(Card):
         actions = []
         for player in self.game.players:
             if player != self.owner:
-                actions.append(gamelib.ActionChoosePlayer(self.owner, self.game, self, player))
+                actions.append(actionlib.ActionChoosePlayer(self.owner, self.game, self, player))
         return actions
 
     def chose_player(self, other_player):
@@ -442,7 +442,7 @@ class CardBusinessCenter(Card):
         seen_types = {}
         for card in self.owner.deck:
             if card.family != Card.FAMILY_MAJOR and type(card) not in seen_types:
-                actions.append(gamelib.ActionChooseOwnCard(self.owner, self.game, self, card))
+                actions.append(actionlib.ActionChooseOwnCard(self.owner, self.game, self, card))
             seen_types[type(card)] = True
 
         for player in self.game.players:
@@ -450,7 +450,7 @@ class CardBusinessCenter(Card):
                 seen_types = {}
                 for card in player.deck:
                     if card.family != Card.FAMILY_MAJOR and type(card) not in seen_types:
-                        actions.append(gamelib.ActionChooseOtherCard(self.owner, self.game, self, card))
+                        actions.append(actionlib.ActionChooseOtherCard(self.owner, self.game, self, card))
                     seen_types[type(card)] = True
 
         return actions
