@@ -7,8 +7,8 @@
 import sys
 import urwid
 
-from . import actionlib
-from .gamelib import Player, Game, MarketBase, MarketHarbor, MarketBrightLights
+from . import markets, actionlib
+from .gamelib import Player, Game
 from .cards import Card, expansion_base, expansion_harbor
 
 class TextApp(object):
@@ -29,9 +29,9 @@ class TextApp(object):
         #expansion = expansion_base
         expansion = expansion_base + expansion_harbor
 
-        #market = MarketBase
-        market = MarketHarbor
-        #market = MarketBrightLights
+        #market = markets.MarketBase
+        market = markets.MarketHarbor
+        #market = markets.MarketBrightLights
 
         self.game  = Game(self.players, expansion, market)
 

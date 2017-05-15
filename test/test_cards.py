@@ -2,9 +2,8 @@
 # vim: set expandtab tabstop=4 shiftwidth=4:
 
 import unittest
-from metrodice import cards, actionlib
-from metrodice.gamelib import Player, Game, \
-        MarketBase, MarketHarbor, MarketBrightLights
+from metrodice import cards, markets, actionlib
+from metrodice.gamelib import Player, Game
 
 class BaseCardTests(unittest.TestCase):
     """
@@ -329,7 +328,7 @@ class CardBasicPayoutTests(BaseCardTests):
                     deck_regular=[],
                     deck_major=[],
                     landmarks=[]),
-                MarketBase)
+                markets.MarketBase)
 
     def test_basic_payout_one_coin(self):
         """
@@ -448,7 +447,7 @@ class CardFactoryFamilyTests(BaseCardTests):
                     deck_regular=[],
                     deck_major=[],
                     landmarks=[]),
-                MarketBase)
+                markets.MarketBase)
         self.player.add_card(self.new_card(name='Cup 1', family=cards.Card.FAMILY_CUP))
         self.player.add_card(self.new_card(name='Cup 2', family=cards.Card.FAMILY_CUP))
 
@@ -604,7 +603,7 @@ class CardFactoryCardTests(BaseCardTests):
                     deck_regular=[],
                     deck_major=[],
                     landmarks=[]),
-                MarketBase)
+                markets.MarketBase)
         self.player.add_card(cards.CardBakery(self.game))
 
     def test_no_matches(self):
@@ -760,7 +759,7 @@ class CardBasicRedTests(BaseCardTests):
                     deck_regular=[],
                     deck_major=[],
                     landmarks=[]),
-                MarketBase)
+                markets.MarketBase)
 
     def test_other_player_has_sufficient_funds(self):
         """
@@ -952,7 +951,7 @@ class CardNamedRegularBlueTests(BaseCardTests):
                     deck_regular=[],
                     deck_major=[],
                     landmarks=[]),
-                MarketBase)
+                markets.MarketBase)
 
     def test_basic_payout(self):
         """
@@ -1001,7 +1000,7 @@ class CardNamedHarborBlueTests(BaseCardTests):
                     deck_regular=[],
                     deck_major=[],
                     landmarks=[]),
-                MarketBase)
+                markets.MarketBase)
 
     def test_basic_payout_without_landmark(self):
         """
@@ -1078,7 +1077,7 @@ class CardNamedRegularGreenTests(BaseCardTests):
                     deck_regular=[],
                     deck_major=[],
                     landmarks=[]),
-                MarketBase)
+                markets.MarketBase)
 
     def test_basic_payout(self):
         """
@@ -1131,7 +1130,7 @@ class CardNamedRegularRedTests(BaseCardTests):
                     deck_regular=[],
                     deck_major=[],
                     landmarks=[]),
-                MarketBase)
+                markets.MarketBase)
 
     def test_other_player_has_sufficient_funds(self):
         """
@@ -1214,7 +1213,7 @@ class CardNamedHarborRedTests(BaseCardTests):
                     deck_regular=[],
                     deck_major=[],
                     landmarks=[]),
-                MarketBase)
+                markets.MarketBase)
 
     def test_other_player_has_sufficient_funds_no_harbor(self):
         """
@@ -1339,7 +1338,7 @@ class CardNamedFactoryFamilyTests(BaseCardTests):
                     deck_regular=[],
                     deck_major=[],
                     landmarks=[]),
-                MarketBase)
+                markets.MarketBase)
 
         # Get rid of our default cards for the player, so we can control the tests
         # a little better without having to do weird special cases.
@@ -1431,7 +1430,7 @@ class CardNamedFactoryCardTests(BaseCardTests):
                     deck_regular=[],
                     deck_major=[],
                     landmarks=[]),
-                MarketBase)
+                markets.MarketBase)
 
     def test_hit_without_any_necessary_cards(self):
         """
@@ -1521,7 +1520,7 @@ class CardTunaBoatTests(BaseCardTests):
                     deck_regular=[],
                     deck_major=[],
                     landmarks=[]),
-                MarketBase)
+                markets.MarketBase)
 
         self.card = cards.CardTunaBoat(self.game)
         self.player.add_card(self.card)
@@ -1658,7 +1657,7 @@ class CardStadiumTests(BaseCardTests):
                     deck_regular=[],
                     deck_major=[],
                     landmarks=[]),
-                MarketBase)
+                markets.MarketBase)
 
         self.stadium = cards.CardStadium(self.game)
         self.player.add_card(self.stadium)
@@ -1734,7 +1733,7 @@ class CardTVStationTests(BaseCardTests):
                     deck_regular=[],
                     deck_major=[],
                     landmarks=[]),
-                MarketBase)
+                markets.MarketBase)
 
         self.station = cards.CardTVStation(self.game)
         self.player.add_card(self.station)
@@ -1835,7 +1834,7 @@ class CardBusinessCenterTests(BaseCardTests):
                     deck_regular=[],
                     deck_major=[],
                     landmarks=[]),
-                MarketBase)
+                markets.MarketBase)
 
         # Get rid of our default cards for the players, so we can control the tests
         # a little better without having to do weird special cases.
@@ -2078,7 +2077,7 @@ class CardPublisherTests(BaseCardTests):
                     deck_regular=[],
                     deck_major=[],
                     landmarks=[]),
-                MarketBase)
+                markets.MarketBase)
 
         self.publisher = cards.CardPublisher(self.game)
         self.player.add_card(self.publisher)
@@ -2170,7 +2169,7 @@ class CardTaxOfficeTests(BaseCardTests):
                     deck_regular=[],
                     deck_major=[],
                     landmarks=[]),
-                MarketBase)
+                markets.MarketBase)
 
         self.office = cards.CardTaxOffice(self.game)
         self.player.add_card(self.office)
@@ -2506,7 +2505,7 @@ class ExpansionTests(unittest.TestCase):
                     deck_regular=[],
                     deck_major=[],
                     landmarks=[]),
-                MarketBase)
+                markets.MarketBase)
         deck = self.e1.generate_deck(game)
         self.assertEqual(
             [type(x) for x in sorted(deck)],
@@ -2526,7 +2525,7 @@ class ExpansionTests(unittest.TestCase):
                     deck_regular=[],
                     deck_major=[],
                     landmarks=[]),
-                MarketBase)
+                markets.MarketBase)
         deck = self.e1.generate_deck(game)
         self.assertEqual(
             [type(x) for x in sorted(deck)],
