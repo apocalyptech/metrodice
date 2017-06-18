@@ -6,10 +6,73 @@
 
 import sys
 import urwid
+import collections
 
 from . import markets, actionlib
 from .gamelib import Player, Game
 from .cards import Card, expansion_base, expansion_harbor
+
+class PlayerInfoBox(urwid.AttrMap):
+    """
+    Class to show player information.  Is an AttrMap containing a LineBox,
+    containing a Pile (which is what's used for the actual content)
+    """
+
+    def __init__(self, player, app):
+        self.player = player
+        self.app = app
+        self.player_pile = urwid.Pile([])
+        super(PlayerInfoBox, self).__init__(
+            urwid.LineBox(self.player_pile, title='Player: {}'.format(self.player.name)),
+            'player_box',
+            )
+
+    def update(self):
+        """
+        Update our information
+        """
+
+        # Highlight if we're the current player
+        if self.player == self.player.game.current_player:
+            self.set_attr_map({None: 'player_box_current'})
+        else:
+            self.set_attr_map({None: 'player_box'})
+
+        # Now set up our contents
+        new_contents = []
+        new_contents.append(self.app.status_line('money', 'Money: $%d' % (self.player.money)))
+        new_contents.append(self.app.status_line('player_box_info', 'Landmarks:'))
+        for landmark in sorted(self.player.landmarks):
+            if landmark.constructed:
+                new_contents.append(self.app.status_line('landmark_bought', ' * %s (%s)' % (landmark, landmark.short_desc)))
+            else:
+                if landmark.cost > self.player.money:
+                    style = 'landmark_unavailable'
+                else:
+                    style = 'landmark_available'
+                new_contents.append(self.app.status_line(style, ' * ($%d) %s (%s)' % (landmark.cost, landmark, landmark.short_desc)))
+
+        # This bit is dumb; massaging our list of cards into a more market-like
+        # structure
+        new_contents.append(self.app.status_line('player_box_info', 'Cards:'))
+        inventory = {}
+        for card in self.player.deck:
+            card_type = type(card)
+            if card_type in inventory:
+                inventory[card_type].append(card)
+            else:
+                inventory[card_type] = [card]
+        inventory_flip = {}
+        for cardlist in inventory.values():
+            inventory_flip[cardlist[0]] = len(cardlist)
+
+        for card in sorted(inventory_flip.keys()):
+            new_contents.append(self.app.status_line(
+                self.app.style_card(card),
+                ' * %dx %s %s (%s) [%s]' % (inventory_flip[card], card.activations, card, card.short_desc, card.family_str())
+            ))
+
+        self.player_pile.contents = new_contents
 
 class TextApp(object):
     """
@@ -41,15 +104,11 @@ class TextApp(object):
         self.main_footer = urwid.Text('', wrap='clip')
         footer_widget = urwid.Padding(urwid.AttrMap(self.main_footer, 'main_footer'))
 
-        player_info_containers = []
-        self.player_info_piles = {}
-        self.player_info_attr = {}
+        # Set up our player info boxes
+        self.player_info_boxes = collections.OrderedDict()
         for player in self.game.players:
-            self.player_info_piles[player] = urwid.Pile([])
-            self.player_info_attr[player] = urwid.AttrMap(urwid.LineBox(self.player_info_piles[player], title='Player: %s' % (player)), 'player_box')
-            player_info_containers.append(self.player_info_attr[player])
-
-        player_info_columns = urwid.Columns(player_info_containers)
+            self.player_info_boxes[player] = PlayerInfoBox(player, self)
+        player_info_columns = urwid.Columns(self.player_info_boxes.values())
 
         self.market_info_pile = urwid.Pile([])
         market_container = urwid.LineBox(self.market_info_pile, title='Market')
@@ -124,7 +183,8 @@ class TextApp(object):
         Updates various things what might need updating
         """
         self.update_header_footer()
-        self.update_players()
+        for player_info_box in self.player_info_boxes.values():
+            player_info_box.update()
         self.update_market()
         self.update_events()
         self.update_actions()
@@ -137,53 +197,6 @@ class TextApp(object):
             ' Metro Dice | Using Expansion: %s | Using Market: %s' % (self.game.expansion, self.game.market)
         )
         self.main_footer.set_text(' Current Player: %s | Status: %s' % (self.game.current_player, self.game.state_str()))
-
-    def update_players(self):
-        """
-        Update our player information
-        """
-        for player in self.players:
-
-            if player == self.game.current_player:
-                self.player_info_attr[player].set_attr_map({None: 'player_box_current'})
-            else:
-                self.player_info_attr[player].set_attr_map({None: 'player_box'})
-
-            pile_widget = self.player_info_piles[player]
-            new_contents = []
-            new_contents.append(self.status_line('money', 'Money: $%d' % (player.money)))
-            new_contents.append(self.status_line('player_box_info', 'Landmarks:'))
-            for landmark in sorted(player.landmarks):
-                if landmark.constructed:
-                    new_contents.append(self.status_line('landmark_bought', ' * %s (%s)' % (landmark, landmark.short_desc)))
-                else:
-                    if landmark.cost > player.money:
-                        style = 'landmark_unavailable'
-                    else:
-                        style = 'landmark_available'
-                    new_contents.append(self.status_line(style, ' * ($%d) %s (%s)' % (landmark.cost, landmark, landmark.short_desc)))
-
-            # This bit is dumb; massaging our list of cards into a more market-like
-            # structure
-            new_contents.append(self.status_line('player_box_info', 'Cards:'))
-            inventory = {}
-            for card in player.deck:
-                card_type = type(card)
-                if card_type in inventory:
-                    inventory[card_type].append(card)
-                else:
-                    inventory[card_type] = [card]
-            inventory_flip = {}
-            for cardlist in inventory.values():
-                inventory_flip[cardlist[0]] = len(cardlist)
-
-            for card in sorted(inventory_flip.keys()):
-                new_contents.append(self.status_line(
-                    self.style_card(card),
-                    ' * %dx %s %s (%s) [%s]' % (inventory_flip[card], card.activations, card, card.short_desc, card.family_str())
-                ))
-
-            pile_widget.contents = new_contents
 
     def update_market(self):
         """
