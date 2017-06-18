@@ -74,6 +74,39 @@ class PlayerInfoBox(urwid.AttrMap):
 
         self.player_pile.contents = new_contents
 
+class MarketInfoBox(urwid.AttrMap):
+    """
+    Class to show information about our active market.  Should maybe have this be an AttrMap
+    """
+
+    def __init__(self, app):
+        self.app = app
+        self.pile = urwid.Pile([])
+        super(MarketInfoBox, self).__init__(
+            urwid.LineBox(self.pile, title='Market'),
+            None,
+            )
+
+    def update(self):
+        """
+        Update our market information
+        """
+        new_contents = []
+        cards_available = self.app.game.market.cards_available()
+        for card in sorted(cards_available.keys()):
+            count = cards_available[card]
+            if card.cost > self.app.game.current_player.money:
+                style='card_unavailable'
+            elif card.family == Card.FAMILY_MAJOR and self.app.game.current_player.has_card(card):
+                style='card_unavailable'
+            else:
+                style=self.app.style_card(card)
+            new_contents.append(self.app.status_line(
+                style,
+                ' * $%d %dx %s %s (%s) [%s]' % (card.cost, count, card.activations, card, card.short_desc, card.family_str())
+            ))
+        self.pile.contents = new_contents
+
 class TextApp(object):
     """
     Urwid interface to playing Metro Dice.
@@ -110,9 +143,6 @@ class TextApp(object):
             self.player_info_boxes[player] = PlayerInfoBox(player, self)
         player_info_columns = urwid.Columns(self.player_info_boxes.values())
 
-        self.market_info_pile = urwid.Pile([])
-        market_container = urwid.LineBox(self.market_info_pile, title='Market')
-
         player_info_pile = urwid.Pile([])
         player_info_pile.contents.append(self.status_line('event_header', 'Events:'))
 
@@ -129,7 +159,8 @@ class TextApp(object):
         self.action_listbox = urwid.ListBox(self.action_walker)
         player_info_pile.contents.append((self.action_listbox, ('weight', 1)))
         
-        market_other_columns = urwid.Columns([market_container, player_info_pile])
+        self.market_info_box = MarketInfoBox(self)
+        market_other_columns = urwid.Columns([self.market_info_box, player_info_pile])
 
         self.main_pile = urwid.Pile([player_info_columns, market_other_columns])
         
@@ -185,7 +216,7 @@ class TextApp(object):
         self.update_header_footer()
         for player_info_box in self.player_info_boxes.values():
             player_info_box.update()
-        self.update_market()
+        self.market_info_box.update()
         self.update_events()
         self.update_actions()
 
@@ -197,26 +228,6 @@ class TextApp(object):
             ' Metro Dice | Using Expansion: %s | Using Market: %s' % (self.game.expansion, self.game.market)
         )
         self.main_footer.set_text(' Current Player: %s | Status: %s' % (self.game.current_player, self.game.state_str()))
-
-    def update_market(self):
-        """
-        Update our market information
-        """
-        new_contents = []
-        cards_available = self.game.market.cards_available()
-        for card in sorted(cards_available.keys()):
-            count = cards_available[card]
-            if card.cost > self.game.current_player.money:
-                style='card_unavailable'
-            elif card.family == Card.FAMILY_MAJOR and self.game.current_player.has_card(card):
-                style='card_unavailable'
-            else:
-                style=self.style_card(card)
-            new_contents.append(self.status_line(
-                style,
-                ' * $%d %dx %s %s (%s) [%s]' % (card.cost, count, card.activations, card, card.short_desc, card.family_str())
-            ))
-        self.market_info_pile.contents = new_contents
 
     def update_events(self):
         """
