@@ -171,8 +171,8 @@ class ActionBuyCard(Action):
                 self.player, self.player.money,
                 self.card, self.card.cost))
         self.player.money -= self.card.cost
-        self.player.add_card(self.game.market.take_card(self.card))
         self.game.add_event('Player "%s" bought card "%s" for %d.' % (self.player, self.card, self.card.cost))
+        self.player.add_card(self.game.market.take_card(self.card))
         self.game.buy_finished()
 
 class ActionBuyLandmark(Action):
