@@ -15,15 +15,16 @@ from .cards import Card, expansion_base, expansion_harbor
 class PlayerInfoBox(urwid.AttrMap):
     """
     Class to show player information.  Is an AttrMap containing a LineBox,
-    containing a Pile (which is what's used for the actual content)
+    containing a ListBox (which is what's used for the actual content)
     """
 
     def __init__(self, player, app):
         self.player = player
         self.app = app
-        self.player_pile = urwid.Pile([])
+        self.walker = urwid.SimpleFocusListWalker([])
+        self.listbox = urwid.ListBox(self.walker)
         super(PlayerInfoBox, self).__init__(
-            urwid.LineBox(self.player_pile, title='Player: {}'.format(self.player.name)),
+            urwid.LineBox(self.listbox, title='Player: {}'.format(self.player.name)),
             'player_box',
             )
 
@@ -38,23 +39,23 @@ class PlayerInfoBox(urwid.AttrMap):
         else:
             self.set_attr_map({None: 'player_box'})
 
-        # Now set up our contents
-        new_contents = []
-        new_contents.append(self.app.status_line('money', 'Money: $%d' % (self.player.money)))
-        new_contents.append(self.app.status_line('player_box_info', 'Landmarks:'))
+        # Now clear out and start populating our FocusListWalker
+        del self.walker[:]
+        self.walker.append(self.app.status_line_base('money', 'Money: $%d' % (self.player.money)))
+        self.walker.append(self.app.status_line_base('player_box_info', 'Landmarks:'))
         for landmark in sorted(self.player.landmarks):
             if landmark.constructed:
-                new_contents.append(self.app.status_line('landmark_bought', ' * %s (%s)' % (landmark, landmark.short_desc)))
+                self.walker.append(self.app.status_line_base('landmark_bought', ' * %s (%s)' % (landmark, landmark.short_desc)))
             else:
                 if landmark.cost > self.player.money:
                     style = 'landmark_unavailable'
                 else:
                     style = 'landmark_available'
-                new_contents.append(self.app.status_line(style, ' * ($%d) %s (%s)' % (landmark.cost, landmark, landmark.short_desc)))
+                self.walker.append(self.app.status_line_base(style, ' * ($%d) %s (%s)' % (landmark.cost, landmark, landmark.short_desc)))
 
         # This bit is dumb; massaging our list of cards into a more market-like
         # structure
-        new_contents.append(self.app.status_line('player_box_info', 'Cards:'))
+        self.walker.append(self.app.status_line_base('player_box_info', 'Cards:'))
         inventory = {}
         for card in self.player.deck:
             card_type = type(card)
@@ -67,12 +68,10 @@ class PlayerInfoBox(urwid.AttrMap):
             inventory_flip[cardlist[0]] = len(cardlist)
 
         for card in sorted(inventory_flip.keys()):
-            new_contents.append(self.app.status_line(
+            self.walker.append(self.app.status_line_base(
                 self.app.style_card(card),
                 ' * %dx %s %s (%s) [%s]' % (inventory_flip[card], card.activations, card, card.short_desc, card.family_str())
             ))
-
-        self.player_pile.contents = new_contents
 
 class MarketInfoBox(urwid.AttrMap):
     """
@@ -288,11 +287,17 @@ class TextApp(object):
         urwid.connect_signal(button, 'click', self.exit_main_loop)
         self.action_walker.append(urwid.AttrMap(button, 'action_available', focus_map='action_selected'))
 
+    def status_line_base(self, style, text):
+        """
+        Returns an urwid.Text object with the given style and text.
+        """
+        return urwid.Text((style, text), wrap='clip')
+
     def status_line(self, style, text):
         """
         Returns a single line of status that we'd plug into an urwid.Pile
         """
-        return (urwid.Text((style, text), wrap='clip'), ('pack', None))
+        return (self.status_line_base(style, text), ('pack', None))
 
     def style_card(self, card):
         """
