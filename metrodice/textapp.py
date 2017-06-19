@@ -75,14 +75,16 @@ class PlayerInfoBox(urwid.AttrMap):
 
 class MarketInfoBox(urwid.AttrMap):
     """
-    Class to show information about our active market.  Should maybe have this be an AttrMap
+    Class to show information about our active market.  As with PlayerInfoBox,
+    this is an AttrMap containing a LineBox, containing a ListBox
     """
 
     def __init__(self, app):
         self.app = app
-        self.pile = urwid.Pile([])
+        self.walker = urwid.SimpleFocusListWalker([])
+        self.listbox = urwid.ListBox(self.walker)
         super(MarketInfoBox, self).__init__(
-            urwid.LineBox(self.pile, title='Market'),
+            urwid.LineBox(self.listbox, title='Market'),
             None,
             )
 
@@ -90,7 +92,7 @@ class MarketInfoBox(urwid.AttrMap):
         """
         Update our market information
         """
-        new_contents = []
+        del self.walker[:]
         cards_available = self.app.game.market.cards_available()
         for card in sorted(cards_available.keys()):
             count = cards_available[card]
@@ -100,11 +102,10 @@ class MarketInfoBox(urwid.AttrMap):
                 style='card_unavailable'
             else:
                 style=self.app.style_card(card)
-            new_contents.append(self.app.status_line(
+            self.walker.append(self.app.status_line_base(
                 style,
                 ' * $%d %dx %s %s (%s) [%s]' % (card.cost, count, card.activations, card, card.short_desc, card.family_str())
             ))
-        self.pile.contents = new_contents
 
 class EventBox(urwid.Pile):
     """
