@@ -16,6 +16,9 @@ to play with a friend you'd have to be sitting right next to each other,
 at which point you may as well just play a physical Machi Koro instead,
 yeah?  I suppose you could share a tmux or screen session.
 
+This is currently what you should expect from the TUI app:
+![TUI Screenshot](screenshot-tui.png)
+
 Metro Dice is programmed in Python (currently only tested in Python 3,
 though I don't think I'm using anything which would cause problems in
 Python 2).  The TUI client uses Python's "urwid" module, and the more-basic
