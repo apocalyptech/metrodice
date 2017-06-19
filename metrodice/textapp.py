@@ -107,6 +107,34 @@ class MarketInfoBox(urwid.AttrMap):
             ))
         self.pile.contents = new_contents
 
+class EventBox(urwid.Pile):
+    """
+    Class to display event information to the user
+    """
+
+    event_height = 8
+
+    def __init__(self, app):
+        self.app = app
+        self.walker = urwid.SimpleFocusListWalker([])
+        self.listbox = urwid.ListBox(self.walker)
+        super(EventBox, self).__init__([])
+        self.contents.append(self.app.status_line('event_header', 'Events:'))
+        self.contents.append((self.listbox, ('given', self.event_height)))
+
+    def update(self):
+        """
+        Updates our info
+        """
+
+        for event in self.app.game.consume_events():
+            if event[:11] == 'Turn change':
+                style = 'event_turn_change'
+            else:
+                style = 'event_line'
+            self.walker.append(urwid.Text((style, event), wrap='clip'))
+            self.listbox.focus_position = len(self.walker) - 1
+
 class TextApp(object):
     """
     Urwid interface to playing Metro Dice.
@@ -144,11 +172,9 @@ class TextApp(object):
         player_info_columns = urwid.Columns(self.player_info_boxes.values())
 
         player_info_pile = urwid.Pile([])
-        player_info_pile.contents.append(self.status_line('event_header', 'Events:'))
 
-        self.event_walker = urwid.SimpleFocusListWalker([])
-        self.event_listbox = urwid.ListBox(self.event_walker)
-        player_info_pile.contents.append((self.event_listbox, ('given', 8)))
+        self.event_box = EventBox(self)
+        player_info_pile.contents.append((self.event_box, ('pack', None)))
 
         player_info_pile.contents.append((urwid.Divider('-'), ('pack', None)))
 
@@ -170,7 +196,7 @@ class TextApp(object):
         main_frame.focus_position = 'body'
         self.main_pile.focus_position = 1
         market_other_columns.focus_position = 1
-        player_info_pile.focus_position = 5
+        player_info_pile.focus_position = 4
 
         palette = [
                 ('main_header', 'white', 'dark blue'),
@@ -217,7 +243,7 @@ class TextApp(object):
         for player_info_box in self.player_info_boxes.values():
             player_info_box.update()
         self.market_info_box.update()
-        self.update_events()
+        self.event_box.update()
         self.update_actions()
 
     def update_header_footer(self):
@@ -228,19 +254,6 @@ class TextApp(object):
             ' Metro Dice | Using Expansion: %s | Using Market: %s' % (self.game.expansion, self.game.market)
         )
         self.main_footer.set_text(' Current Player: %s | Status: %s' % (self.game.current_player, self.game.state_str()))
-
-    def update_events(self):
-        """
-        Updates our events/errors
-        """
-
-        for event in self.game.consume_events():
-            if event[:11] == 'Turn change':
-                style = 'event_turn_change'
-            else:
-                style = 'event_line'
-            self.event_walker.append(urwid.Text((style, event), wrap='clip'))
-            self.event_listbox.focus_position = len(self.event_walker) - 1
 
     def choose_action(self, button, action):
         """
