@@ -19,6 +19,11 @@ yeah?  I suppose you could share a tmux or screen session.
 This is currently what you should expect from the TUI app:
 ![TUI Screenshot](screenshot-tui.png)
 
+The TUI app, as you can probably see, does require a pretty sizeable
+terminal to work properly - in fact, a default 80x24 xterm is too small
+and the app'll crash.  The various areas of the screen should be scrollable,
+though.
+
 Metro Dice is programmed in Python (currently only tested in Python 3,
 though I don't think I'm using anything which would cause problems in
 Python 2).  The TUI client uses Python's "urwid" module, and the more-basic
