@@ -63,7 +63,7 @@ class MarketBase(object):
         """
         card_type = type(card)
         if card_type not in self.available:
-            raise Exception('Card "%s" is not found in the market' % (
+            raise Exception('Card "{}" is not found in the market'.format(
                 card))
         to_return = self.available[card_type].pop()
         if len(self.available[card_type]) == 0:
@@ -112,7 +112,7 @@ class MarketHarbor(MarketBase):
         """
         while (len(self.deck) > 0) and (len(self.available) < self.pile_limit):
             new_card = self.deck.pop()
-            self.game.add_event('Added to the market: %s' % (new_card))
+            self.game.add_event('Added to the market: {}'.format(new_card))
             self._add_to_available(new_card)
 
 class MarketBrightLights(MarketBase):

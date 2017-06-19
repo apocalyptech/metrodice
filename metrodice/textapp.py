@@ -41,17 +41,17 @@ class PlayerInfoBox(urwid.AttrMap):
 
         # Now clear out and start populating our FocusListWalker
         del self.walker[:]
-        self.walker.append(self.app.status_line_base('money', 'Money: $%d' % (self.player.money)))
+        self.walker.append(self.app.status_line_base('money', 'Money: ${}'.format(self.player.money)))
         self.walker.append(self.app.status_line_base('player_box_info', 'Landmarks:'))
         for landmark in sorted(self.player.landmarks):
             if landmark.constructed:
-                self.walker.append(self.app.status_line_base('landmark_bought', ' * %s (%s)' % (landmark, landmark.short_desc)))
+                self.walker.append(self.app.status_line_base('landmark_bought', ' * {} ({})'.format(landmark, landmark.short_desc)))
             else:
                 if landmark.cost > self.player.money:
                     style = 'landmark_unavailable'
                 else:
                     style = 'landmark_available'
-                self.walker.append(self.app.status_line_base(style, ' * ($%d) %s (%s)' % (landmark.cost, landmark, landmark.short_desc)))
+                self.walker.append(self.app.status_line_base(style, ' * (${}) {} ({})'.format(landmark.cost, landmark, landmark.short_desc)))
 
         # This bit is dumb; massaging our list of cards into a more market-like
         # structure
@@ -70,7 +70,7 @@ class PlayerInfoBox(urwid.AttrMap):
         for card in sorted(inventory_flip.keys()):
             self.walker.append(self.app.status_line_base(
                 self.app.style_card(card),
-                ' * %dx %s %s (%s) [%s]' % (inventory_flip[card], card.activations, card, card.short_desc, card.family_str())
+                ' * {}x {} {} ({}) [{}]'.format(inventory_flip[card], card.activations, card, card.short_desc, card.family_str())
             ))
 
 class MarketInfoBox(urwid.AttrMap):
@@ -104,7 +104,7 @@ class MarketInfoBox(urwid.AttrMap):
                 style=self.app.style_card(card)
             self.walker.append(self.app.status_line_base(
                 style,
-                ' * $%d %dx %s %s (%s) [%s]' % (card.cost, count, card.activations, card, card.short_desc, card.family_str())
+                ' * ${} {}x {} {} ({}) [{}]'.format(card.cost, count, card.activations, card, card.short_desc, card.family_str())
             ))
 
 class EventBox(urwid.Pile):
@@ -251,9 +251,9 @@ class TextApp(object):
         Updates our header and footer
         """
         self.main_header.set_text(
-            ' Metro Dice | Using Expansion: %s | Using Market: %s' % (self.game.expansion, self.game.market)
+            ' Metro Dice | Using Expansion: {} | Using Market: {}'.format(self.game.expansion, self.game.market)
         )
-        self.main_footer.set_text(' Current Player: %s | Status: %s' % (self.game.current_player, self.game.state_str()))
+        self.main_footer.set_text(' Current Player: {} | Status: {}'.format(self.game.current_player, self.game.state_str()))
 
     def choose_action(self, button, action):
         """
@@ -267,7 +267,7 @@ class TextApp(object):
         Updates the actions we have available
         """
 
-        self.action_prompt.set_text(('action_header', '%s ($%d) - Available Actions:' % (
+        self.action_prompt.set_text(('action_header', '{} (${}) - Available Actions:'.format(
             self.game.current_player, self.game.current_player.money)))
 
         # Remove all current actions (this is a bit hokey)

@@ -40,26 +40,26 @@ class CLI(object):
             print()
             self.show_market(self.game.current_player)
             print()
-            print('Current State: %s' % (self.game.state_str()))
+            print('Current State: {}'.format(self.game.state_str()))
             if error_msg is not None:
                 sys.stdout.write(colorama.Fore.RED)
-                print('ERROR: %s' % (error_msg))
+                print('ERROR: {}'.format(error_msg))
                 sys.stdout.write(colorama.Style.RESET_ALL)
                 error_msg = None
             sys.stdout.write(colorama.Fore.YELLOW)
             for event in self.game.consume_events():
-                print('INFO: %s' % (event))
+                print('INFO: {}'.format(event))
             sys.stdout.write(colorama.Style.RESET_ALL)
             if self.game.state == Game.STATE_GAME_OVER:
                 return
             print('Possible Actions:')
             allowed_choices = set('q')
             for (idx, state) in enumerate(self.game.actions_available):
-                print('  %d. %s' % (idx+1, state.desc))
+                print('  {}. {}'.format(idx+1, state.desc))
                 allowed_choices.add(str(idx+1))
             print('  q. Quit Game')
             print()
-            sys.stdout.write('%s%s%s (%s%d%s)> ' % (
+            sys.stdout.write('{}{}{} ({}{}{})> '.format(
                 colorama.Fore.MAGENTA,
                 self.game.current_player,
                 colorama.Style.RESET_ALL,
@@ -71,7 +71,7 @@ class CLI(object):
             response = sys.stdin.readline()
             response = response.strip()
             if response not in allowed_choices:
-                error_msg = 'Unknown choice "%s"' % (response)
+                error_msg = 'Unknown choice "{}"'.format(response)
             else:
                 try:
                     choice_idx = int(response)
@@ -96,25 +96,25 @@ class CLI(object):
         """
         Shows the given player state
         """
-        player_str = 'Player: %s' % (player.name)
+        player_str = 'Player: {}'.format(player.name)
         sys.stdout.write(colorama.Fore.MAGENTA)
         print('-'*len(player_str))
         print(player_str)
         print('-'*len(player_str))
         sys.stdout.write(colorama.Fore.GREEN)
-        print('Money: %d' % (player.money))
+        print('Money: {}'.format(player.money))
         sys.stdout.write(colorama.Style.RESET_ALL)
         print('Landmarks:')
         for landmark in sorted(player.landmarks):
             if landmark.constructed:
                 sys.stdout.write(colorama.Style.BRIGHT)
-                print(' * %s (%s)' % (landmark, landmark.short_desc))
+                print(' * {} ({})'.format(landmark, landmark.short_desc))
                 sys.stdout.write(colorama.Style.RESET_ALL)
             else:
                 if landmark.cost > player.money:
                     sys.stdout.write(colorama.Fore.WHITE)
                     sys.stdout.write(colorama.Style.DIM)
-                print(' * %s (%s) - cost: %d' % (landmark, landmark.short_desc, landmark.cost))
+                print(' * {} ({}) - cost: {}'.format(landmark, landmark.short_desc, landmark.cost))
                 sys.stdout.write(colorama.Style.RESET_ALL)
 
         # This bit is dumb; massaging our list of cards into a more market-like
@@ -133,7 +133,7 @@ class CLI(object):
 
         for card in sorted(inventory_flip.keys()):
             sys.stdout.write(self.card_colorama(card))
-            print(' * %dx %s %s (%s)' % (inventory_flip[card], card.activations, card, card.short_desc))
+            print(' * {}x {} {} ({})'.format(inventory_flip[card], card.activations, card, card.short_desc))
             sys.stdout.write(colorama.Style.RESET_ALL)
 
     def show_market(self, player):
@@ -153,5 +153,5 @@ class CLI(object):
                 sys.stdout.write(colorama.Style.DIM)
             else:
                 sys.stdout.write(self.card_colorama(card))
-            print(' * %dx %s %s (%s) - cost: %d' % (count, card.activations, card, card.short_desc, card.cost))
+            print(' * {}x {} {} ({}) - cost: {}'.format(count, card.activations, card, card.short_desc, card.cost))
             sys.stdout.write(colorama.Style.RESET_ALL)

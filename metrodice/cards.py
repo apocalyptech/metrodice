@@ -146,7 +146,7 @@ class CardBasicPayout(Card):
         if self.does_bread_cup_bonus_apply():
             to_pay += 1
         self.owner.money += to_pay
-        self.game.add_event('Player "%s" received %d coins for a %s (new total: %d)' % (self.owner, to_pay, self, self.owner.money))
+        self.game.add_event('Player "{}" received {} coins for a {} (new total: {})'.format(self.owner, to_pay, self, self.owner.money))
 
 class CardFactoryFamily(Card):
     """
@@ -181,7 +181,7 @@ class CardFactoryFamily(Card):
             to_pay += 1
         if to_pay > 0:
             self.owner.money += to_pay
-            self.game.add_event('Player "%s" received %d coins for a %s (new total: %d)' % (self.owner, to_pay, self, self.owner.money))
+            self.game.add_event('Player "{}" received {} coins for a {} (new total: {})'.format(self.owner, to_pay, self, self.owner.money))
 
 class CardFactoryCard(Card):
     """
@@ -217,7 +217,7 @@ class CardFactoryCard(Card):
             to_pay += 1
         if to_pay > 0:
             self.owner.money += to_pay
-            self.game.add_event('Player "%s" received %d coins for a %s (new total: %d)' % (self.owner, to_pay, self, self.owner.money))
+            self.game.add_event('Player "{}" received {} coins for a {} (new total: {})'.format(self.owner, to_pay, self, self.owner.money))
 
 class CardBasicRed(Card):
     """
@@ -249,7 +249,7 @@ class CardBasicRed(Card):
         if to_steal > 0:
             self.owner.money += to_steal
             player_rolled.money -= to_steal
-            self.game.add_event('Player "%s" received %d coins from "%s" from a %s (new total: %d)' % (self.owner, to_steal, player_rolled, self, self.owner.money))
+            self.game.add_event('Player "{}" received {} coins from "{}" from a {} (new total: {})'.format(self.owner, to_steal, player_rolled, self, self.owner.money))
 
 class CardWheat(CardBasicPayout):
 
@@ -365,7 +365,7 @@ class CardStadium(Card):
                 if to_steal > 0:
                     self.owner.money += to_steal
                     player.money -= to_steal
-                    self.game.add_event('Player "%s" received %d coins from "%s" from a %s (new total: %d)' % (self.owner, to_steal, player, self, self.owner.money))
+                    self.game.add_event('Player "{}" received {} coins from "{}" from a {} (new total: {})'.format(self.owner, to_steal, player, self, self.owner.money))
 
 class CardTVStation(Card):
 
@@ -405,7 +405,7 @@ class CardTVStation(Card):
         if to_steal > 0:
             self.owner.money += to_steal
             other_player.money -= to_steal
-            self.game.add_event('Player "%s" received %d coins from "%s" from a %s (new total: %d)' % (self.owner, to_steal, other_player, self, self.owner.money))
+            self.game.add_event('Player "{}" received {} coins from "{}" from a {} (new total: {})'.format(self.owner, to_steal, other_player, self, self.owner.money))
         self.game.remove_state_card(self)
         self.game.finish_roll()
 
@@ -460,10 +460,10 @@ class CardBusinessCenter(Card):
         The user chose a player to steal from
         """
         if trade_owner not in self.owner.deck:
-            raise Exception('Card "%s" is not in %s\'s deck' % (trade_owner, self.owner))
+            raise Exception('Card "{}" is not in {}\'s deck'.format(trade_owner, self.owner))
         if trade_owner.family == Card.FAMILY_MAJOR:
-            raise Exception('Cannot trade "%s" because it is a %s' % (trade_owner, trade_owner.family_str()))
-        self.game.add_event('Chose your own "%s" card for trade (from %s)' % (trade_owner, self))
+            raise Exception('Cannot trade "{}" because it is a {}'.format(trade_owner, trade_owner.family_str()))
+        self.game.add_event('Chose your own "{}" card for trade (from {})'.format(trade_owner, self))
         self.trade_owner = trade_owner
         self.check_finished()
 
@@ -472,13 +472,13 @@ class CardBusinessCenter(Card):
         The user chose a player to steal from
         """
         if trade_other in self.owner.deck:
-            raise Exception('Card "%s" is already in %s\'s deck' % (trade_other, self.owner))
+            raise Exception('Card "{}" is already in {}\'s deck'.format(trade_other, self.owner))
         if trade_other not in trade_other.owner.deck:
             # Shouldn't be possible to get in here
-            raise Exception('Card "%s" is not in %s\'s deck' % (trade_other, trade_other.owner))
+            raise Exception('Card "{}" is not in {}\'s deck'.format(trade_other, trade_other.owner))
         if trade_other.family == Card.FAMILY_MAJOR:
-            raise Exception('Cannot trade "%s" because it is a %s' % (trade_other, trade_other.family_str()))
-        self.game.add_event('Chose %s\'s card "%s" card for trade (from %s)' % (trade_other.owner, trade_other, self))
+            raise Exception('Cannot trade "{}" because it is a {}'.format(trade_other, trade_other.family_str()))
+        self.game.add_event('Chose {}\'s card "{}" card for trade (from {})'.format(trade_other.owner, trade_other, self))
         self.trade_other = trade_other
         self.check_finished()
 
@@ -489,7 +489,7 @@ class CardBusinessCenter(Card):
         if self.trade_owner is not None and self.trade_other is not None:
 
             # Report, before we actually do the work.
-            self.game.add_event('%s traded card "%s" for %s\'s card "%s"' % (self.owner, self.trade_owner,
+            self.game.add_event('{} traded card "{}" for {}\'s card "{}"'.format(self.owner, self.trade_owner,
                 self.trade_other.owner, self.trade_other))
 
             # Move our own card to the other person's inventory
@@ -685,7 +685,7 @@ class CardPublisher(Card):
                 if to_steal > 0:
                     self.owner.money += to_steal
                     player.money -= to_steal
-                    self.game.add_event('Player "%s" received %d coins from "%s" from a %s (new total: %d)' % (self.owner, to_steal, player, self, self.owner.money))
+                    self.game.add_event('Player "{}" received {} coins from "{}" from a {} (new total: {})'.format(self.owner, to_steal, player, self, self.owner.money))
 
 class CardTaxOffice(Card):
 
@@ -711,7 +711,7 @@ class CardTaxOffice(Card):
                     to_steal = math.floor(player.money / 2)
                     self.owner.money += to_steal
                     player.money -= to_steal
-                    self.game.add_event('Player "%s" received %d coins from "%s" from a %s (new total: %d)' % (self.owner, to_steal, player, self, self.owner.money))
+                    self.game.add_event('Player "{}" received {} coins from "{}" from a {} (new total: {})'.format(self.owner, to_steal, player, self, self.owner.money))
 
 class CardHamburgerStand(CardBasicRed):
 
@@ -789,9 +789,9 @@ class CardTunaBoat(Card):
             roll1 = random.randint(1, 6)
             roll2 = random.randint(1, 6)
             self.game.tuna_boat_roll = roll1 + roll2
-            self.game.add_event('Tuna Boat roll results: %d + %d = %d' % (roll1, roll2, self.game.tuna_boat_roll))
+            self.game.add_event('Tuna Boat roll results: {} + {} = {}'.format(roll1, roll2, self.game.tuna_boat_roll))
         self.owner.money += self.game.tuna_boat_roll
-        self.game.add_event('Player "%s" received %d coins for a %s (new total: %d)' % (self.owner, self.game.tuna_boat_roll, self, self.owner.money))
+        self.game.add_event('Player "{}" received {} coins for a {} (new total: {})'.format(self.owner, self.game.tuna_boat_roll, self, self.owner.money))
 
 class Landmark(object):
     """
@@ -992,7 +992,7 @@ class Expansion(object):
         """
 
         return Expansion(
-            name = '%s + %s' % (self.name, other.name),
+            name = '{} + {}'.format(self.name, other.name),
             deck_regular = self.deck_regular + other.deck_regular,
             deck_major = self.deck_major + other.deck_major,
             landmarks = self.landmarks + other.landmarks,
