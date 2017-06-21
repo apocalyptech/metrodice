@@ -1,3 +1,7 @@
+**NOTE:** This branch is going to be where I work towards networked
+multiplayer, and I expect things to be broken (and this README to
+get obsolete).  Beware!
+
 Metro Dice
 ==========
 

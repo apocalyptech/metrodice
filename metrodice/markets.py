@@ -4,6 +4,7 @@
 import random
 
 from . import cards
+from .eventlib import *
 
 class MarketBase(object):
     """
@@ -112,7 +113,7 @@ class MarketHarbor(MarketBase):
         """
         while (len(self.deck) > 0) and (len(self.available) < self.pile_limit):
             new_card = self.deck.pop()
-            self.game.add_event('Added to the market: {}'.format(new_card))
+            self.game.add_event(EventMarketCardAdded(new_card))
             self._add_to_available(new_card)
 
 class MarketBrightLights(MarketBase):

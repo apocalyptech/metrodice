@@ -3,6 +3,8 @@
 
 import random
 
+from .eventlib import *
+
 class Action(object):
     """
     Class describing an action a user can take.  A bit silly to have
@@ -50,7 +52,7 @@ class ActionRollOne(Action):
         self.game.rolled_dice = 1
         self.game.roll_result = roll
         self.player.rolled_doubles = False
-        self.game.add_event('Player "{}" rolled one die and got a {}'.format(self.player, roll))
+        self.game.add_event(EventPlayerRolledOneDie(self.player, roll))
         self.game.player_rolled(roll, self.num_to_reroll)
 
     def _action_body(self):
@@ -87,7 +89,7 @@ class ActionRollTwo(Action):
         total = roll1 + roll2
         self.game.rolled_dice = 2
         self.game.roll_result = total
-        self.game.add_event('Player "{}" rolled two dice and got a {} ({} & {})'.format(self.player, total, roll1, roll2))
+        self.game.add_event(EventPlayerRolledTwoDice(self.player, total, roll1, roll2))
         self.game.player_rolled(total, self.num_to_reroll)
 
     def _action_body(self):
@@ -110,7 +112,7 @@ class ActionKeepRoll(Action):
             player=player)
 
     def _action_body(self):
-        self.game.add_event('Player "{}" kept the die roll of {}'.format(self.player, self.roll))
+        self.game.add_event(EventPlayerKeepsRoll(self.player, self.roll))
         self.game.player_rolled(self.roll, None, self.allow_addition)
 
 class ActionAddToRoll(Action):
@@ -129,7 +131,7 @@ class ActionAddToRoll(Action):
 
     def _action_body(self):
         new_roll = self.roll + self.num_to_add
-        self.game.add_event('Player "{}" added {} to roll, to make the roll: {}'.format(self.player, self.num_to_add, new_roll))
+        self.game.add_event(EventPlayerAddedToRoll(self.player, self.num_to_add, new_roll))
         self.game.player_rolled(new_roll, None, False)
 
 class ActionSkipBuy(Action):
@@ -146,10 +148,13 @@ class ActionSkipBuy(Action):
 
     def _action_body(self):
         if self.player.gets_ten_coins_for_not_building:
-            self.game.add_event('Player "{}" gets 10 coins for not buying anything (from {}).'.format(self.player, self.player.gets_ten_coins_for_not_building))
+            self.game.add_event(EventPlayerReceivesCoin(player,
+                num_coins=10,
+                cause_landmark=self.player.gets_ten_coins_for_not_building,
+                cause_str='not buying anything'))
             self.player.money += 10
         else:
-            self.game.add_event('Player "{}" opted not to buy anything.'.format(self.player))
+            self.game.add_event(EventPlayerDidNotBuy(self.player))
         self.game.buy_finished()
 
 class ActionBuyCard(Action):
@@ -171,7 +176,7 @@ class ActionBuyCard(Action):
                 self.player, self.player.money,
                 self.card, self.card.cost))
         self.player.money -= self.card.cost
-        self.game.add_event('Player "{}" bought card "{}" for {}.'.format(self.player, self.card, self.card.cost))
+        self.game.add_event(EventPlayerBoughtCard(self.player, self.card, self.card.cost))
         self.player.add_card(self.game.market.take_card(self.card))
         self.game.buy_finished()
 
@@ -195,7 +200,7 @@ class ActionBuyLandmark(Action):
                 self.landmark, self.landmark.cost))
         self.player.money -= self.landmark.cost
         self.landmark.construct()
-        self.game.add_event('Player "{}" constructed landmark "{}" for {}.'.format(self.player, self.landmark, self.landmark.cost))
+        self.game.add_event(EventPlayerConstructedLandmark(self.player, self.landmark, self.landmark.cost))
         if not self.game.check_victory(self.player):
             self.game.buy_finished()
 

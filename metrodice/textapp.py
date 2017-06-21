@@ -8,7 +8,7 @@ import sys
 import urwid
 import collections
 
-from . import markets, actionlib
+from . import markets, actionlib, eventlib
 from .gamelib import Player, Game
 from .cards import Card, expansion_base, expansion_harbor
 
@@ -128,11 +128,12 @@ class EventBox(urwid.Pile):
         """
 
         for event in self.app.game.consume_events():
-            if event[:11] == 'Turn change':
+            #if event[:11] == 'Turn change':
+            if type(event) == eventlib.EventTurnChange:
                 style = 'event_turn_change'
             else:
                 style = 'event_line'
-            self.walker.append(urwid.Text((style, event), wrap='clip'))
+            self.walker.append(urwid.Text((style, str(event)), wrap='clip'))
             self.listbox.focus_position = len(self.walker) - 1
 
 class TextApp(object):

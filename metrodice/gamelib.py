@@ -4,6 +4,7 @@
 import random
 
 from . import cards, markets, actionlib
+from .eventlib import *
 
 class Player(object):
     """
@@ -297,7 +298,9 @@ class Game(object):
         if len(self.state_cards) == 0:
             self.state = Game.STATE_PURCHASE_DECISION
             if self.current_player.coin_if_broke and self.current_player.money == 0:
-                self.add_event('Player "{}" recieved 1 coin due to {}'.format(self.current_player, self.current_player.coin_if_broke))
+                self.add_event(EventPlayerReceivesCoin(self.current_player,
+                    num_coins=1,
+                    cause_landmark=self.current_player.coin_if_broke))
                 self.current_player.money = 1
         else:
             self.state = Game.STATE_ESTABLISHMENT_CHOICE
@@ -307,11 +310,11 @@ class Game(object):
         The current player is through buying things.
         """
         if self.current_player.rolled_doubles and self.current_player.extra_turn_on_doubles:
-            self.add_event('Player "{}" takes another turn because of rolling doubles'.format(self.current_player))
+            self.add_event(EventPlayerAnotherTurnRollDoubles(self.current_player))
         else:
             self.current_player_idx = (self.current_player_idx + 1) % len(self.players)
             self.current_player = self.players[self.current_player_idx]
-            self.add_event('Turn change: player "{}"'.format(self.current_player))
+            self.add_event(EventTurnChange(self.current_player))
         self.state_cards = []
         self.state = Game.STATE_TURN_BEGIN
 
@@ -335,7 +338,7 @@ class Game(object):
         state appropriately.
         """
         if player.has_won():
-            self.add_event('Player "{}" has constructed all landmarks and won the game!'.format(player))
+            self.add_event(EventPlayerWon(player))
             self.state = Game.STATE_GAME_OVER
             return True
         else:
